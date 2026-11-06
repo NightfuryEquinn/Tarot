@@ -26,3 +26,46 @@
 @media(prefers-reduced-motion:reduce){.cinema-canvas{display:none}.cinema-heading,.cinema-enter{transform:none!important}.fan-card,.ritual-action{transition:none}}
 
 .reading-results:focus{outline:none}
+/* A single overview of all 78 cards, with natural card proportions inside each hit area. */
+.phase-choose .cinema-stage{width:min(calc(100% - 40px),1120px);padding-block:12px 20px}
+.phase-choose .cinema-heading{margin-bottom:15px}
+.phase-choose .cinema-heading h1{font-size:clamp(30px,3.2vw,48px);margin-top:12px}
+.phase-choose .cinema-heading h1 br{display:none}
+.phase-choose .cinema-heading h1 em{margin-left:.22em}
+.phase-choose .cinema-heading>p{margin-top:10px}
+.fan-window{grid-template-columns:repeat(13,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:9px 7px;width:100%;max-width:1080px;height:clamp(300px,49svh,540px);min-height:0;padding:0;margin:0 auto;align-items:stretch}
+.fan-card{display:flex;align-items:center;justify-content:center;top:auto;transform:none;width:100%;height:100%;min-width:0;max-width:none;aspect-ratio:auto;border:1px solid #8da6ca18;border-radius:3px;transition:background .3s,border-color .3s;position:relative}
+.deck-card-art{display:block;height:calc(100% - 6px);aspect-ratio:.6;max-width:calc(100% - 10px);position:relative}
+.deck-card-art>.card-back{width:100%;height:100%;box-shadow:0 4px 10px #0003}
+.fan-card:hover:not(:disabled),.fan-card:focus-visible{outline-offset:2px;background:#b7cbea10;border-color:#bdcce966}
+.fan-card.chosen{border-color:#d4bd7966;background:#c8ad6c0b}
+.fan-card.chosen .deck-card-art{opacity:.13}
+.fan-card.chosen>svg{left:calc(50% - 8px);top:calc(50% - 8px);width:16px;height:16px}
+.fan-number{position:absolute;left:3px;top:3px;bottom:auto;width:auto;font-size:7px;line-height:1;color:#bac6da88;letter-spacing:0}
+.scene-present .fan-card:not(.chosen) .deck-card-art>.card-back{opacity:0}
+.full-deck-note{font-size:8px;letter-spacing:1.5px;color:#9ba9bc;margin-top:14px;text-align:center}
+.phase-choose .constellation-progress{margin-top:11px;gap:32px}
+.phase-choose .stage-announcement{margin-top:8px}
+@media(max-width:600px){
+ .phase-choose .cinema-header{min-height:62px;padding-block:10px}
+ .phase-choose .cinema-stage{width:calc(100% - 28px);padding-block:5px 10px}
+ .phase-choose .cinema-heading{margin-bottom:13px}
+ .phase-choose .cinema-heading>.eyebrow{font-size:6px;letter-spacing:1.2px}
+ .phase-choose .cinema-heading h1{font-size:32px;margin-top:8px}
+ .phase-choose .cinema-heading>p{font-size:10px;max-width:none;margin-top:8px}
+ .fan-window{grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(10,minmax(0,1fr));height:clamp(270px,47svh,500px);gap:3px 5px;max-width:500px}
+ .deck-card-art{height:calc(100% - 3px)}
+ .deck-card-art .card-back{border-width:1px;outline-offset:-2px}
+ .deck-card-art .card-back:before{inset:3px}
+ .fan-number{font-size:6px;left:4px;top:4px}
+ .full-deck-note{font-size:6px;letter-spacing:1px;margin-top:10px}
+ .phase-choose .constellation-progress{margin-top:6px;gap:29px}
+ .phase-choose .constellation-progress b{font-size:14px;line-height:20px}
+ .phase-choose .constellation-progress small{display:none}
+ .phase-choose .constellation-progress>span:not(:last-child):after{top:10px;left:18px;width:23px}
+ .phase-choose .stage-announcement{font-size:9px;margin-top:5px}
+ .phase-choose .cinema-footer{min-height:48px;padding-block:8px 12px}
+}
+@media(max-height:520px) and (min-width:601px){.fan-window{height:270px}.phase-choose .cinema-heading h1{font-size:30px}}
+
+@media(prefers-reduced-motion:reduce){.fan-card{transition:none}}

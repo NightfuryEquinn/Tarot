@@ -4,7 +4,7 @@ A five-card tarot ritual built with **Next.js, TypeScript, Anime.js, Three.js, a
 
 ## Experience
 
-- A full-screen celestial opening: one optional question, five card choices, individual reveals, and a final constellation. The interpretations and deck library follow the ritual.
+- A full-screen celestial opening: one optional question, a single overview of all 78 cards, five choices, individual reveals, and a final constellation. The interpretations and deck library follow the ritual.
 - Choose five cards for **present situation, challenge, underlying influence, advice, and possible outcome**.
 - Animated 3D shuffle, fan, selection, and reveals; a complete HTML interface supports touch, keyboard navigation, reduced motion, and WebGL failures.
 - All 78 Rider–Waite–Smith cards with original upright/reversed interpretations, advice, and shared thematic tags.
@@ -54,3 +54,5 @@ The illustrations are faithful public-domain scans of the original 1909 Roses & 
 Automated tests cover dataset completeness, local images, unique draws, reversals, selection limits, saved-state recovery, mixed and single-arcana relationships, Theatre timeline endpoints, sequential reveals, compatibility with saved readings, and service-worker installation/update/navigation behavior. Production compilation checks the static export and TypeScript.
 
 Browser checks still required for a release: desktop/mobile rendering, actual WebGL interactions and context loss, keyboard/screen-reader behavior, reduced motion, install prompts, and a complete offline reload. The implementation environment did not expose the supported browser QA runtime; automated tests do not replace those browser checks.
+
+The deck overview uses 13 columns on larger screens and 8 on phones, with no pagination. Card placement and scale are damped using elapsed frame time, departing cards fade out, and the fifth selection settles before the reveal stage. Layout measurements are refreshed on state, viewport, or scroll changes rather than on every frame.
