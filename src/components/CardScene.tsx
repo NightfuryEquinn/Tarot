@@ -12,12 +12,12 @@ import { cards } from '@/data/cards';
 import type { DrawnCard } from '@/lib/reading';
 import type { RitualStage } from '@/lib/cinematic';
 
-type Props={stage:RitualStage;focus:number;deck:DrawnCard[];selected:number[];revealed:string[];browse:number;skipVersion:number;onFailure:()=>void;onReady:()=>void};
+type Props={stage:RitualStage;focus:number;deck:DrawnCard[];selected:number[];revealed:string[];skipVersion:number;onFailure:()=>void;onReady:()=>void};
 let instance=0;
 export default function CardScene(props:Props){
   const host=useRef<HTMLDivElement>(null),current=useRef(props);current.current=props;
   const sync=useRef<()=>void>(()=>{});
-  useEffect(()=>{sync.current();},[props.stage,props.focus,props.deck,props.selected,props.revealed,props.browse,props.skipVersion]);
+  useEffect(()=>{sync.current();},[props.stage,props.focus,props.deck,props.selected,props.revealed,props.skipVersion]);
   useEffect(()=>{
     const container=host.current;if(!container)return;
     const world=container.parentElement!;
@@ -42,7 +42,7 @@ export default function CardScene(props:Props){
     const fan=project.sheet('Fan',key),fanMotion=fan.object('Motion',{spread:types.number(1),shuffle:types.number(0),camera:types.number(0)});
     const finale=project.sheet('Finale',key),finaleMotion=finale.object('Motion',{progress:types.number(1),glow:types.number(0)});
     const sheets=new Set([arrival,fan,finale]),playing=new Set<typeof fan>();let paused:(typeof fan)[]=[];
-    let live=true,frame=0,readySent=false,firstSync=true,last=0,time=0,slowFrames=0,wasStage: RitualStage|undefined,skip=current.current.skipVersion,loaded=false;
+    let live=true,frame=0,readySent=false,firstSync=true,layoutDirty=true,snapFrames=0,last=0,lastDraw=0,time=0,slowFrames=0,wasStage: RitualStage|undefined,skip=current.current.skipVersion,loaded=false;
     const disposables:{dispose:()=>void}[]=[composer,bloom,finish,output];
     const textures:THREE.Texture[]=[];
     const play=(sheet:typeof fan)=>{sheet.sequence.pause();sheet.sequence.position=0;playing.add(sheet);void sheet.sequence.play().then(()=>playing.delete(sheet));};
@@ -79,19 +79,22 @@ export default function CardScene(props:Props){
     const nodes=new Map(cards.map(card=>{
       const group=new THREE.Group(),frontMaterial=new THREE.MeshBasicMaterial({color:0xe5d8ba});
       const front=new THREE.Mesh(geometry,frontMaterial);front.position.z=.012;
-      const back=new THREE.Mesh(geometry,backMaterial);back.position.z=-.012;back.rotation.y=Math.PI;
-      group.add(front,back,new THREE.Mesh(edgeGeometry,edgeMaterial));group.visible=false;scene.add(group);
+      const backFace=backMaterial.clone(),edgeFace=edgeMaterial.clone();
+      backFace.transparent=true;edgeFace.transparent=true;frontMaterial.transparent=true;
+      disposables.push(backFace,edgeFace);
+      const back=new THREE.Mesh(geometry,backFace);back.position.z=-.012;back.rotation.y=Math.PI;
+      group.add(front,back,new THREE.Mesh(edgeGeometry,edgeFace));group.visible=false;scene.add(group);
       const revealSheet=project.sheet('Reveal',`${key}-${card.id}`),revealObject=revealSheet.object('Motion',{progress:types.number(0)});
       const selectSheet=project.sheet('Select',`${key}-${card.id}`),selectObject=selectSheet.object('Motion',{progress:types.number(0)});
       sheets.add(revealSheet);sheets.add(selectSheet);
       disposables.push(frontMaterial);
-      const node={group,front,frontMaterial,revealSheet,revealObject,selectSheet,selectObject,loaded:false,selected:false,revealed:false};
+      const node={group,front,frontMaterial,backFace,edgeFace,targetPosition:new THREE.Vector3(),targetScale:new THREE.Vector3(),targetRotation:0,opacity:0,initialized:false,revealSheet,revealObject,selectSheet,selectObject,loaded:false,selected:false,revealed:false};
       return [card.id,node] as const;
     }));
     const loader=new THREE.TextureLoader();
     const update=()=>{
       if(!loaded||!live)return;
-      const p=current.current;
+      const p=current.current;layoutDirty=true;
       if(p.stage!==wasStage){
         if(p.stage==='gather')play(arrival);
         if(p.stage==='choose'){if(wasStage==='gather')play(fan);else fan.sequence.position=2.3;}
@@ -110,48 +113,52 @@ export default function CardScene(props:Props){
         },undefined,()=>{if(live)current.current.onFailure();});}
       });
       firstSync=false;
-      if(skip!==p.skipVersion){skip=p.skipVersion;playing.forEach(sheet=>sheet.sequence.pause());playing.clear();arrival.sequence.position=1.9;fan.sequence.position=2.3;finale.sequence.position=1.2;nodes.forEach(node=>{if(node.revealed)node.revealSheet.sequence.position=.8;if(node.selected)node.selectSheet.sequence.position=.65;});}
+      if(skip!==p.skipVersion){snapFrames=2;skip=p.skipVersion;playing.forEach(sheet=>sheet.sequence.pause());playing.clear();arrival.sequence.position=1.9;fan.sequence.position=2.3;finale.sequence.position=1.2;nodes.forEach(node=>{if(node.revealed)node.revealSheet.sequence.position=.8;if(node.selected)node.selectSheet.sequence.position=.65;});}
     };
     sync.current=update;
     let targets=new Map<number,DOMRect>(),focal:DOMRect|undefined,tableau:DOMRect[]=[];
+    let bounds=container.getBoundingClientRect();
     const measure=()=>{
-      targets=new Map([...world.querySelectorAll<HTMLElement>('[data-card-index]')].map(el=>[Number(el.dataset.cardIndex),el.getBoundingClientRect()]));
+      bounds=container.getBoundingClientRect();layoutDirty=false;
+      targets=new Map([...world.querySelectorAll<HTMLElement>('[data-card-index]')].map(el=>[Number(el.dataset.cardIndex),(el.querySelector('.deck-card-art')??el).getBoundingClientRect()]));
       focal=world.querySelector('.focal-frame')?.getBoundingClientRect();
       tableau=[...world.querySelectorAll('.tableau-frame')].map(el=>el.getBoundingClientRect());
     };
-    const observer=new ResizeObserver(()=>{const width=container.clientWidth,height=container.clientHeight;renderer.setSize(width,height);composer.setSize(width,height);bloom.setSize(width*.6,height*.6);camera.aspect=width/height;camera.updateProjectionMatrix();measure();});observer.observe(container);observer.observe(world);
+    const observer=new ResizeObserver(()=>{const width=container.clientWidth,height=container.clientHeight;renderer.setSize(width,height);composer.setSize(width,height);bloom.setSize(width*.6,height*.6);camera.aspect=width/height;camera.updateProjectionMatrix();layoutDirty=true;});observer.observe(container);observer.observe(world);
+    const markLayout=()=>{layoutDirty=true;};window.addEventListener('scroll',markLayout,{passive:true});
     const rectToWorld=(rect:DOMRect)=>{
-      const bounds=container.getBoundingClientRect(),height=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*camera.position.z,width=height*camera.aspect;
+      const height=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*camera.position.z,width=height*camera.aspect;
       return {x:((rect.left+rect.width/2-bounds.left)/bounds.width-.5)*width,y:(.5-(rect.top+rect.height/2-bounds.top)/bounds.height)*height,w:rect.width/bounds.width*width,h:rect.height/bounds.height*height};
     };
     function render(now:number){
       if(!live)return;frame=requestAnimationFrame(render);
-      const elapsed=now-last;if(elapsed<(innerWidth<700?32:16))return;
+      const interval=1000/(innerWidth<700?30:60),elapsed=now-last;if(elapsed<interval-.5)return;
+      const delta=lastDraw?Math.min((now-lastDraw)/1000,.08):1/60;lastDraw=now;
       if(last&&elapsed>48)slowFrames++;else slowFrames=Math.max(0,slowFrames-1);
       if(slowFrames>45){bloom.enabled=false;starGeometry.setDrawRange(0,120);}
-      time+=Math.min(elapsed/1000,.05);last=now;
-      measure(); // HTML anchors are also the pointer and keyboard hit targets.
+      time+=delta;last=now-(elapsed%interval);
+      if(layoutDirty)measure(); // Read layout only after a state, viewport, or scroll change.
       const p=current.current,motion=arrivalMotion.value;camera.position.z=12-motion.camera*.5;
       finish.uniforms.strength.value=p.stage==='gather'?motion.vignette:.18;finish.uniforms.time.value=time;
       const gathering=p.stage==='gather'?motion.gather:0;
       for(let i=0;i<420;i++){starPositions[i*3]=starBase[i*3]*(1-gathering*.45)+Math.sin(time*.07+i)*.08;starPositions[i*3+1]=starBase[i*3+1]*(1-gathering*.45)+Math.sin(time*.09+i*.7)*.12;}
       starGeometry.attributes.position.needsUpdate=true;stars.rotation.z=Math.sin(time*.025)*.015;
-      nodes.forEach(node=>{node.group.visible=false;});
+      const active=new Set<string>();
       const place=(id:string,rect:DOMRect,rotation=0,spread=1)=>{
-        const node=nodes.get(id)!;const pos=rectToWorld(rect);node.group.visible=true;
-        node.group.position.set(pos.x*spread,pos.y*spread,0);node.group.scale.set(pos.w,pos.h,1);node.group.rotation.set(0,Math.PI*(1-node.revealObject.value.progress),rotation);
+        const node=nodes.get(id)!;const pos=rectToWorld(rect);active.add(id);
+        node.targetPosition.set(pos.x*spread,pos.y*spread,0);node.targetScale.set(pos.w,pos.h,1);node.targetRotation=rotation;
         const draw=p.deck.find(d=>d.id===id);node.front.rotation.z=draw?.reversed?Math.PI:0;
         return pos;
       };
       halo.visible=p.stage==='question'||p.stage==='gather'||p.stage==='reveal'||p.stage==='complete';
       halo.scale.set(5.5,5.5,1);halo.position.set(0,-.2,-.8);haloMaterial.opacity=.025+gathering*.15;
       if(p.stage==='gather'){
-        p.deck.slice(0,13).forEach((draw,i)=>{const node=nodes.get(draw.id)!;node.group.visible=true;node.group.scale.set(.7,1.16,1);node.group.position.set(Math.sin(i*2)*motion.gather*.35,-.7+Math.cos(i)*motion.gather*.12,i*.005);node.group.rotation.set(0,Math.PI,(i-6)*.015);});
+        p.deck.slice(0,13).forEach((draw,i)=>{const node=nodes.get(draw.id)!;active.add(draw.id);node.targetScale.set(.7,1.16,1);node.targetPosition.set(Math.sin(i*2)*motion.gather*.35,-.7+Math.cos(i)*motion.gather*.12,i*.005);node.targetRotation=(i-6)*.015;});
       }
       if(p.stage==='choose')targets.forEach((rect,index)=>{
         const draw=p.deck[index];if(!draw)return;const node=nodes.get(draw.id)!;
         if(node.selected&&node.selectObject.value.progress>=.99)return;
-        const pos=place(draw.id,rect,0,fanMotion.value.spread);node.group.position.y=pos.y+node.selectObject.value.progress*1.8;node.group.scale.multiplyScalar(1-node.selectObject.value.progress*.75);
+        const pos=place(draw.id,rect,0,fanMotion.value.spread);node.targetPosition.y=pos.y+node.selectObject.value.progress*.45;node.targetScale.multiplyScalar(1-node.selectObject.value.progress*.25);
       });
       if(p.stage==='reveal'&&focal){
         const draw=p.deck[p.selected[p.focus]];if(draw){const pos=place(draw.id,focal);const progress=nodes.get(draw.id)!.revealObject.value.progress;halo.position.set(pos.x,pos.y,-.8);halo.scale.set(pos.w*2.4,pos.h*1.7,1);haloMaterial.opacity=.055+Math.sin(progress*Math.PI)*.2;}
@@ -160,17 +167,30 @@ export default function CardScene(props:Props){
         const positions=p.selected.map((index,i)=>tableau[i]?place(p.deck[index].id,tableau[i]):null).filter(Boolean);
         if(positions.length===5){const array=lineGeometry.attributes.position.array as Float32Array;for(let i=0;i<5;i++){array[i*3]=positions[i]!.x;array[i*3+1]=positions[i]!.y;array[i*3+2]=-.5;}lineGeometry.attributes.position.needsUpdate=true;lineMaterial.opacity=.16*finaleMotion.value.progress;haloMaterial.opacity=.04+finaleMotion.value.glow*.06;}
       }else lineMaterial.opacity=0;
+      const blend=snapFrames>0?1:1-Math.exp(-9*delta);
+      nodes.forEach((node,id)=>{
+        const visible=active.has(id);
+        if(visible&&!node.initialized){node.initialized=true;node.group.position.copy(node.targetPosition);node.group.scale.copy(node.targetScale).multiplyScalar(.9);}
+        node.opacity=THREE.MathUtils.lerp(node.opacity,visible?1:0,blend);
+        node.group.visible=node.opacity>.008;
+        if(!node.group.visible)return;
+        node.group.position.lerp(node.targetPosition,blend);node.group.scale.lerp(node.targetScale,blend);
+        node.group.rotation.y=Math.PI*(1-node.revealObject.value.progress);
+        node.group.rotation.z=THREE.MathUtils.lerp(node.group.rotation.z,node.targetRotation,blend);
+        node.frontMaterial.opacity=node.opacity;node.backFace.opacity=node.opacity;node.edgeFace.opacity=node.opacity;
+      });
+      if(snapFrames>0)snapFrames--;
       try{composer.render();if(!readySent){readySent=true;current.current.onReady();}}catch{current.current.onFailure();cancelAnimationFrame(frame);}
     }
     const lost=(event:Event)=>{event.preventDefault();current.current.onFailure();};
     const visibility=()=>{
       if(document.hidden){cancelAnimationFrame(frame);paused=[...playing];paused.forEach(sheet=>sheet.sequence.pause());}
-      else{last=0;paused.forEach(sheet=>{playing.add(sheet);void sheet.sequence.play().then(()=>playing.delete(sheet));});paused=[];frame=requestAnimationFrame(render);}
+      else{last=0;lastDraw=0;layoutDirty=true;paused.forEach(sheet=>{playing.add(sheet);void sheet.sequence.play().then(()=>playing.delete(sheet));});paused=[];frame=requestAnimationFrame(render);}
     };
     renderer.domElement.addEventListener('webglcontextlost',lost);document.addEventListener('visibilitychange',visibility);
     void project.ready.then(()=>{if(!live)return;loaded=true;update();frame=requestAnimationFrame(render);});
     return()=>{
-      live=false;sync.current=()=>{};cancelAnimationFrame(frame);observer.disconnect();playing.forEach(sheet=>sheet.sequence.pause());paused.forEach(sheet=>sheet.sequence.pause());sheets.forEach(sheet=>sheet.detachObject('Motion'));
+      live=false;window.removeEventListener('scroll',markLayout);sync.current=()=>{};cancelAnimationFrame(frame);observer.disconnect();playing.forEach(sheet=>sheet.sequence.pause());paused.forEach(sheet=>sheet.sequence.pause());sheets.forEach(sheet=>sheet.detachObject('Motion'));
       renderer.domElement.removeEventListener('webglcontextlost',lost);document.removeEventListener('visibilitychange',visibility);textures.forEach(texture=>texture.dispose());disposables.forEach(resource=>resource.dispose());
       renderer.forceContextLoss();renderer.dispose();renderer.domElement.remove();
     };

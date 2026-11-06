@@ -30,8 +30,6 @@ export function TarotExperience(){
   const [resetOpen,setResetOpen]=useState(false);
   const [sound,setSound]=useState(false);
   const [sceneReady,setSceneReady]=useState(false);
-  const [browse,setBrowse]=useState(0);
-  const [pageSize,setPageSize]=useState(5);
   const root=useRef<HTMLElement>(null);
   const title=useRef<HTMLHeadingElement>(null);
   const audio=useRef<Ambience|null>(null);
@@ -51,13 +49,12 @@ export function TarotExperience(){
   useEffect(()=>{
     const media=window.matchMedia('(prefers-reduced-motion: reduce)');
     const sync=()=>setReduced(media.matches);sync();media.addEventListener('change',sync);
-    const size=()=>{setPageSize(innerWidth<600?5:innerWidth<1000?9:13);setBrowse(0);};size();window.addEventListener('resize',size);
     try{
       const saved=restoreReading(localStorage.getItem(STORAGE_KEY));
       if(saved){dispatch({type:'restore',state:saved});const resumed=resumeRitual(saved);setStage(resumed.stage);setFocus(resumed.focus);if(saved.revealed.length===5&&['#reading','#about'].includes(location.hash))setReport(true);}
     }catch{setNotice('Progress cannot be saved in this browser. You can still complete your reading.');}
     setReady(true);
-    return()=>{media.removeEventListener('change',sync);window.removeEventListener('resize',size);audio.current?.dispose();audio.current=null;};
+    return()=>{media.removeEventListener('change',sync);audio.current?.dispose();audio.current=null;};
   },[]);
   useEffect(()=>{
     if(!ready)return;
@@ -68,8 +65,8 @@ export function TarotExperience(){
     const timer=setTimeout(()=>setStage('choose'),hasScene?1900:180);return()=>clearTimeout(timer);
   },[stage,hasScene]);
   useEffect(()=>{
-    if(stage==='choose'&&state.selected.length===5){const next=resumeRitual(state);setFocus(next.focus);setStage(next.stage);}
-  },[state,stage]);
+    if(stage==='choose'&&state.selected.length===5){const timer=setTimeout(()=>{const next=resumeRitual(state);setFocus(next.focus);setStage(next.stage);},hasScene?480:0);return()=>clearTimeout(timer);}
+  },[state,stage,hasScene]);
   useEffect(()=>{
     if(!busy)return;
     const timer=setTimeout(()=>{setBusy(false);turnLock.current=false;},hasScene?1000:180);return()=>clearTimeout(timer);
@@ -78,7 +75,7 @@ export function TarotExperience(){
     if(!ready)return;
     title.current?.focus({preventScroll:true});
     if(reduced||!root.current)return;
-    const scope=createScope({root}).add(()=>{animate('.cinema-enter',{opacity:[0,1],translateY:[10,0],duration:650,ease:'out(3)'});});
+    const scope=createScope({root}).add(()=>{animate('.cinema-enter',{opacity:[0,1],translateY:[10,0],duration:800,ease:'out(4)'});});
     return()=>scope.revert();
   },[stage,focus,viewOnly,ready,reduced]);
   useEffect(()=>{
@@ -91,7 +88,7 @@ export function TarotExperience(){
   },[sound,viewOnly]);
   useEffect(()=>{if(resetOpen)restartDialog.current?.showModal();else restartDialog.current?.close();},[resetOpen]);
   const begin=()=>{
-    try{dispatch({type:'start',deck:shuffleDeck(state.reversals)});setBrowse(0);setStage('gather');}
+    try{dispatch({type:'start',deck:shuffleDeck(state.reversals)});setStage('gather');}
     catch{setNotice('The deck couldn’t be shuffled. Please try again in a current browser.');}
   };
   const turn=()=>{
@@ -114,13 +111,13 @@ export function TarotExperience(){
   return <>
     {viewOnly?<><Header/><ReadingReport draws={draws} onRestart={()=>setResetOpen(true)}/><Footer/></>:<main id="main" className={`cinematic-world phase-${stage} ${hasScene&&sceneReady?'scene-present':'scene-fallback'}`} ref={root}>
       <div className="celestial-backdrop" aria-hidden="true"><div className="nebula nebula-a"/><div className="nebula nebula-b"/><div className="starfield"/><div className="celestial-orbit orbit-outer"/><div className="celestial-orbit orbit-inner"/><div className="world-grain"/></div>
-      {hasScene&&<CardScene stage={stage} focus={focus} deck={state.deck} selected={state.selected} revealed={state.revealed} browse={browse} skipVersion={skipVersion} onFailure={()=>{setFailed(true);setSceneReady(false);}} onReady={()=>setSceneReady(true)}/>}
+      {hasScene&&<CardScene stage={stage} focus={focus} deck={state.deck} selected={state.selected} revealed={state.revealed} skipVersion={skipVersion} onFailure={()=>{setFailed(true);setSceneReady(false);}} onReady={()=>setSceneReady(true)}/>}
       <header className="cinema-header"><Link href="/" className="cinema-wordmark" aria-label="Midnight Arcana"><Icon name="sun" size={26}/><span>MIDNIGHT <b>ARCANA</b></span></Link><div className="cinema-controls"><button onClick={toggleSound} aria-pressed={sound} aria-label={sound?'Mute ambience':'Enable ambience'} className="cinema-control"><span aria-hidden="true">{sound?'♫':'♪'}</span><span>Sound {sound?'on':'off'}</span></button><button onClick={()=>{setSimple(!simple);setSceneReady(false);}} aria-pressed={simple||reduced} disabled={reduced||failed} className="cinema-control"><Icon name="star" size={15}/><span>{reduced||failed?'Gentle mode':simple?'Full effects':'Reduce effects'}</span></button></div></header>
       <section className="cinema-stage" aria-label="Tarot reading">
         <div className="cinema-heading cinema-enter"><span className="eyebrow">{labels[stage]}</span><h1 ref={title} tabIndex={-1}>{headlines[stage]}</h1>{stage==='choose'&&<p>Choose five cards. There is no wrong place to begin.</p>}{stage==='reveal'&&<p>{positions[focus].prompt}</p>}</div>
         {stage==='question'&&<form className="intention-form cinema-enter" onSubmit={e=>{e.preventDefault();begin();}}><label htmlFor="intention" className="sr-only">Your question, optional</label><textarea id="intention" rows={2} maxLength={300} value={state.question} onChange={e=>dispatch({type:'question',value:e.target.value})} placeholder="A question. A feeling. Something on your mind."/><span className="question-whisper">You can leave this blank. Your words stay with you.</span><button className="ritual-action" type="submit" disabled={!ready}>Let the cards speak <Icon name="arrow" size={18}/></button><label className="cinema-reversals"><input type="checkbox" checked={state.reversals} onChange={e=>dispatch({type:'reversals',value:e.target.checked})}/><span>Welcome reversed cards</span></label></form>}
         {stage==='gather'&&<div className="gather-copy cinema-enter"><span className="gather-sigil" aria-hidden="true">✧</span><p>Hold your question lightly.</p><button className="cinema-subtle" onClick={skip}>Skip animation <Icon name="arrow" size={15}/></button></div>}
-        {stage==='choose'&&<div className="choose-interface"><div className="fan-window" style={{'--fan-count':pageSize} as React.CSSProperties} role="group" aria-label="Face-down deck">{state.deck.slice(browse,browse+pageSize).map((item,i)=>{const index=browse+i,chosen=state.selected.includes(index);return <button key={item.id} data-card-index={index} className={`fan-card ${chosen?'chosen':''}`} style={{'--fan-index':i,'--fan-curve':Math.pow(i-(pageSize-1)/2,2)*.8} as React.CSSProperties} onClick={()=>dispatch({type:'select',index})} aria-label={`Choose face-down card ${index+1}`} aria-pressed={chosen} disabled={chosen}><CardBack/>{chosen&&<Icon name="check" size={18}/>}<span className="fan-number">{String(index+1).padStart(2,'0')}</span></button>;})}</div><div className="deck-paging"><button onClick={()=>setBrowse(Math.max(0,browse-pageSize))} disabled={browse===0} aria-label="Previous cards">←</button><span>{browse+1}—{Math.min(browse+pageSize,78)} <i>/ 78</i></span><button onClick={()=>setBrowse(Math.min(78-pageSize,browse+pageSize))} disabled={browse>=78-pageSize} aria-label="Next cards">→</button></div><div className="constellation-progress" aria-label={`${state.selected.length} of 5 cards chosen`}>{positions.map((position,i)=><span className={i<state.selected.length?'lit':''} key={position.name}><b>✦</b><small>{i+1}</small></span>)}</div><p className="stage-announcement" aria-live="polite">{state.selected.length} of 5 cards chosen</p></div>}
+        {stage==='choose'&&<div className="choose-interface"><div className="fan-window" role="group" aria-label="Face-down deck">{state.deck.map((item,index)=>{const chosen=state.selected.includes(index);return <button key={item.id} data-card-index={index} className={`fan-card ${chosen?'chosen':''}`} onClick={()=>dispatch({type:'select',index})} aria-label={`Choose face-down card ${index+1}`} aria-pressed={chosen} disabled={chosen||state.selected.length===5}><span className="deck-card-art"><CardBack/></span>{chosen&&<Icon name="check" size={18}/>}<span className="fan-number">{String(index+1).padStart(2,'0')}</span></button>;})}</div><p className="full-deck-note">THE COMPLETE DECK · CHOOSE ANY FIVE</p><div className="constellation-progress" aria-label={`${state.selected.length} of 5 cards chosen`}>{positions.map((position,i)=><span className={i<state.selected.length?'lit':''} key={position.name}><b>✦</b><small>{i+1}</small></span>)}</div><p className="stage-announcement" aria-live="polite">{state.selected.length} of 5 cards chosen</p></div>}
         {stage==='reveal'&&draw&&card&&<div className="reveal-interface"><button className={`focal-card ${revealed?'turned':''}`} onClick={turn} disabled={revealed||busy} aria-label={revealed?`${card.name}, ${draw.reversed?'reversed':'upright'}`:`Reveal ${positions[focus].label}`}><span className="focal-frame">{revealed?<img src={card.image} alt="" width="480" height="800" className={draw.reversed?'reversed':''}/>:<CardBack/>}</span></button><div className="reveal-caption" aria-live="polite">{revealed?<><span className="eyebrow">{draw.reversed?'↧ REVERSED':'↟ UPRIGHT'}</span><h2>{card.name}</h2><p>{meaningFor(draw).keywords.join(' · ')}</p></>:<p className="reveal-invitation">There is a story waiting on the other side.</p>}</div><div className="reveal-actions">{!revealed?<button className="ritual-action" onClick={turn}>Reveal this card <Icon name="star" size={16}/></button>:busy?<button className="cinema-subtle" onClick={skip}>Skip animation <Icon name="arrow" size={16}/></button>:<button className="ritual-action" onClick={takeNext}>{nextReveal(state,focus)<0?'Bring the story together':'Continue to the next card'} <Icon name="arrow" size={17}/></button>}</div><div className="reveal-steps" aria-label={`Card ${focus+1} of 5`}>{positions.map((p,i)=><span key={p.name} className={i===focus?'current':i<focus?'done':''}>✦</span>)}</div></div>}
         {stage==='complete'&&<div className="completion-interface"><div className="final-tableau">{draws.map((item,i)=><div key={item.id} className="tableau-card"><span className="tableau-frame"><img src={cardById.get(item.id)!.image} alt={`${positions[i].label}: ${cardById.get(item.id)!.name}, ${item.reversed?'reversed':'upright'}`} width="480" height="800" className={item.reversed?'reversed':''}/></span><span>{positions[i].name}</span></div>)}</div>{state.question&&<blockquote className="completed-question">“{state.question}”</blockquote>}<div className="completion-actions"><button className="ritual-action" onClick={openReport}>Understand your reading <Icon name="arrow" size={17}/></button><Link className="cinema-subtle" href="/cards/">Discover the deck <Icon name="book" size={16}/></Link></div></div>}
       </section>
