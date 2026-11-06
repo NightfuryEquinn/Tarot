@@ -1,3 +1,4 @@
+import { getCard, local, themeName, type Locale } from './locale';
 import { cards, type TarotCard, type Meaning } from '../data/cards';
 
 export type DrawnCard = { id: string; reversed: boolean };
@@ -12,10 +13,18 @@ export const positions = [
   { name: 'The guidance', label: 'Advice', prompt: 'What could help you move forward?', context: 'As guidance for your next step' },
   { name: 'The possibility', label: 'Possible outcome', prompt: 'What might unfold from here?', context: 'As one possible direction from here' },
 ] as const;
+const chinesePositions = [
+  { name:'当下', label:'当前处境', prompt:'什么正等待你的关注？', context:'在当前处境的核心' },
+  { name:'挑战', label:'面临的挑战', prompt:'什么阻碍着你？', context:'面对需要处理的挑战' },
+  { name:'根源', label:'潜在影响', prompt:'表面之下，什么正在发生？', context:'在局势的深处' },
+  { name:'指引', label:'行动建议', prompt:'什么能帮助你向前？', context:'作为下一步的指引' },
+  { name:'可能', label:'可能的发展', prompt:'从这里可能走向何方？', context:'作为一种可能的发展方向' },
+];
+export const getPositions = (locale:Locale='en') => locale==='en'?positions:chinesePositions;
 export const emptyReading: ReadingState = { version: 1, question: '', reversals: true, deck: [], selected: [], revealed: [] };
 export const cardById = new Map(cards.map(card => [card.id, card]));
-export function meaningFor(draw: DrawnCard): Meaning {
-  const card = cardById.get(draw.id);
+export function meaningFor(draw: DrawnCard, locale:Locale = 'en'): Meaning {
+  const card = getCard(draw.id,locale);
   if (!card) throw new Error('Unknown card');
   return draw.reversed ? card.reversed : card.upright;
 }
@@ -81,37 +90,48 @@ const contrasts: [string, string, string][] = [
   ['conflict', 'balance', 'A disagreement may reveal what needs rebalancing. Look for a fair response before trying to win.'],
 ];
 const titleCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
-const cardLabel = (draw: DrawnCard) => `${cardById.get(draw.id)!.name}${draw.reversed ? ' reversed' : ''}`;
-export function connectReading(draws: DrawnCard[]): Connection[] {
+const cardLabel = (draw: DrawnCard, locale:Locale='en') => `${getCard(draw.id,locale).name}${draw.reversed ? local(locale,' reversed','（逆位）') : ''}`;
+export function connectReading(draws: DrawnCard[], locale:Locale='en'): Connection[] {
+  const positions=getPositions(locale);
+  const label=(draw:DrawnCard)=>cardLabel(draw,locale);
+  const domain=(suit:string)=>locale==='en'?suitDomains[suit]:chineseSuitDomains[suit];
   const candidates: Connection[] = [];
   for (let i = 0; i < draws.length; i++) for (let j = i + 1; j < draws.length; j++) {
-    const a = draws[i], b = draws[j], ca = cardById.get(a.id)!, cb = cardById.get(b.id)!;
-    const ma = meaningFor(a), mb = meaningFor(b);
+    const a = draws[i], b = draws[j], ca = getCard(a.id,locale), cb = getCard(b.id,locale);
+    const ma = meaningFor(a,locale), mb = meaningFor(b,locale);
     const shared = ma.themes.filter(theme => mb.themes.includes(theme));
     const tension = contrasts.find(([x,y]) => (ma.themes.includes(x) && mb.themes.includes(y)) || (ma.themes.includes(y) && mb.themes.includes(x)));
     const bridge = ca.arcana !== cb.arcana;
     const sameSuit = !!ca.suit && ca.suit === cb.suit;
-    let title = `${positions[i].name} meets ${positions[j].name.toLowerCase()}`;
-    let text = `${cardLabel(a)} brings ${ma.keywords[0].toLowerCase()} to your ${positions[i].label.toLowerCase()}, while ${cardLabel(b)} brings ${mb.keywords[0].toLowerCase()} to your ${positions[j].label.toLowerCase()}. Read the second as a response to the first: ${mb.advice}`;
+    let title = local(locale,`${positions[i].name} meets ${positions[j].name.toLowerCase()}`,`${positions[i].name}与${positions[j].name}的对话`);
+    let text = local(locale,
+      `${label(a)} brings ${ma.keywords[0].toLowerCase()} to your ${positions[i].label.toLowerCase()}, while ${label(b)} brings ${mb.keywords[0].toLowerCase()} to your ${positions[j].label.toLowerCase()}. Read the second as a response to the first: ${mb.advice}`,
+      `${label(a)}为「${positions[i].label}」带来${ma.keywords[0]}，${label(b)}则以${mb.keywords[0]}回应「${positions[j].label}」。把后者视为对前者的回应：${mb.advice}`);
     let kind: Connection['kind'] = 'position';
     let score = 1;
     if (shared.length) {
-      title = `${titleCase(shared[0])}, seen twice`;
-      text = `${cardLabel(a)} and ${cardLabel(b)} share a theme of ${shared[0]}. In the ${positions[i].label.toLowerCase()} position, it appears as ${ma.keywords[0].toLowerCase()}; in the ${positions[j].label.toLowerCase()} position, it takes the form of ${mb.keywords[0].toLowerCase()}. ${mb.advice}`;
+      title = local(locale,`${titleCase(shared[0])}, seen twice`,`${themeName(shared[0],locale)}，在两张牌中呼应`);
+      text = local(locale,
+        `${label(a)} and ${label(b)} share a theme of ${shared[0]}. In the ${positions[i].label.toLowerCase()} position, it appears as ${ma.keywords[0].toLowerCase()}; in the ${positions[j].label.toLowerCase()} position, it takes the form of ${mb.keywords[0].toLowerCase()}. ${mb.advice}`,
+        `${label(a)}与${label(b)}共同指向「${themeName(shared[0],locale)}」。在「${positions[i].label}」中，它表现为${ma.keywords[0]}；在「${positions[j].label}」中，它呈现为${mb.keywords[0]}。${mb.advice}`);
       kind = 'resonance'; score += 5 + shared.length;
     } else if (tension) {
-      title = `${titleCase(tension[0])} & ${tension[1]}`;
-      text = `${cardLabel(a)} (${ma.keywords[0].toLowerCase()}) and ${cardLabel(b)} (${mb.keywords[0].toLowerCase()}) pull in different directions. ${tension[2]}`;
+      title = local(locale,`${titleCase(tension[0])} & ${tension[1]}`,`${themeName(tension[0],locale)}与${themeName(tension[1],locale)}`);
+      text = local(locale,
+        `${label(a)} (${ma.keywords[0].toLowerCase()}) and ${label(b)} (${mb.keywords[0].toLowerCase()}) pull in different directions. ${tension[2]}`,
+        `${label(a)}的${ma.keywords[0]}，与${label(b)}的${mb.keywords[0]}，指向不同的需要。${chineseContrasts[contrasts.indexOf(tension)]}`);
       kind = 'tension'; score += 5;
     }
-    if (sameSuit) { score += 2; text += ` Their shared suit of ${titleCase(ca.suit!)} places this exchange in ${suitDomains[ca.suit!]}.`; }
-    if (ca.arcana === 'minor' && cb.arcana === 'minor' && ca.number === cb.number) { score += 2; text += ' Their matching ranks echo a similar stage of development across different areas of life.'; }
+    if (sameSuit) { score += 2; text += local(locale,` Their shared suit of ${titleCase(ca.suit!)} places this exchange in ${domain(ca.suit!)}.`,` 两张牌同属一个牌组，让这份对话落在${domain(ca.suit!)}之中。`); }
+    if (ca.arcana === 'minor' && cb.arcana === 'minor' && ca.number === cb.number) { score += 2; text += local(locale,' Their matching ranks echo a similar stage of development across different areas of life.',' 相同的牌阶也提示：生活的不同领域，可能正经历相似的发展阶段。'); }
     if (bridge) {
       const major = ca.arcana === 'major' ? a : b, minor = ca.arcana === 'minor' ? a : b;
-      const majorMeaning = meaningFor(major), minorMeaning = meaningFor(minor), minorCard = cardById.get(minor.id)!;
-      text += ` ${cardLabel(major)} supplies the larger lesson of ${majorMeaning.keywords[0].toLowerCase()}; ${cardLabel(minor)} makes it tangible through ${minorMeaning.keywords[0].toLowerCase()} in ${suitDomains[minorCard.suit!]}.`;
+      const majorMeaning = meaningFor(major,locale), minorMeaning = meaningFor(minor,locale), minorCard = getCard(minor.id,locale);
+      text += local(locale,
+        ` ${label(major)} supplies the larger lesson of ${majorMeaning.keywords[0].toLowerCase()}; ${label(minor)} makes it tangible through ${minorMeaning.keywords[0].toLowerCase()} in ${domain(minorCard.suit!)}.`,
+        ` 大阿尔卡那的${label(major)}提出关于${majorMeaning.keywords[0]}的整体课题；小阿尔卡那的${label(minor)}则通过${minorMeaning.keywords[0]}，将它落实到${domain(minorCard.suit!)}。`);
       kind = 'bridge'; score += 3;
-      if (!shared.length && !tension) title = 'The larger lesson, made personal';
+      if (!shared.length && !tension) title = local(locale,'The larger lesson, made personal','让整体课题走进日常');
     }
     candidates.push({ ids: [a.id,b.id], title, text, kind, score });
   }
@@ -122,9 +142,20 @@ export function connectReading(draws: DrawnCard[]): Connection[] {
   return result;
 }
 export const suitDomains: Record<string,string> = { wands: 'creative energy and purposeful action', cups: 'feelings and relationships', swords: 'thoughts, decisions, and communication', pentacles: 'work, resources, and everyday care' };
-export function summarizeReading(draws: DrawnCard[]): string {
+const chineseSuitDomains: Record<string,string> = {wands:'创造力与有方向的行动',cups:'情感与关系',swords:'思考、决定与沟通',pentacles:'工作、资源与日常照顾'};
+const chineseContrasts = [
+  '行动需要时间成熟。想一想，哪里适合迈出一小步，哪里又需要耐心来保护自己的精力。',
+  '亲近与独立都值得被照顾。清楚的界限，能让关系更长久。',
+  '一部分渴望改变，另一部分需要可靠的基础。尝试新方向时，保留一个稳定的支点。',
+  '有些事实已经清楚，另一些仍在浮现。依据已知行动，同时给未知留出空间。',
+  '分清属于自己的责任，以及可以放下的负担。承诺并不意味着承担一切。',
+  '分歧可能揭示需要调整的地方。先寻找公平的回应，再考虑谁对谁错。',
+];
+export function summarizeReading(draws: DrawnCard[], locale:Locale='en'): string {
   if (draws.length !== 5) return '';
   const majorCount = draws.filter(d => cardById.get(d.id)!.arcana === 'major').length;
-  const opening = majorCount >= 3 ? 'Several Major Arcana cards give this reading the shape of a larger transition.' : majorCount === 0 ? 'This reading speaks through everyday choices, relationships, and habits.' : 'A larger life theme is unfolding through practical, everyday experiences.';
-  return `${opening} ${cardLabel(draws[0])} puts ${meaningFor(draws[0]).keywords[0].toLowerCase()} at the center. Your guidance, ${cardLabel(draws[3])}, suggests: ${meaningFor(draws[3]).advice} ${cardLabel(draws[4])} offers ${meaningFor(draws[4]).keywords[0].toLowerCase()} as a possibility to reflect on, rather than a fixed destination.`;
+  const opening = majorCount >= 3 ? local(locale,'Several Major Arcana cards give this reading the shape of a larger transition.','多张大阿尔卡那牌，为这次解读勾勒出一个较大的人生转变。') : majorCount === 0 ? local(locale,'This reading speaks through everyday choices, relationships, and habits.','这次解读聚焦于日常的选择、关系与习惯。') : local(locale,'A larger life theme is unfolding through practical, everyday experiences.','一个较大的人生主题，正在日常的具体经历中展开。');
+  return local(locale,
+    `${opening} ${cardLabel(draws[0],locale)} puts ${meaningFor(draws[0],locale).keywords[0].toLowerCase()} at the center. Your guidance, ${cardLabel(draws[3],locale)}, suggests: ${meaningFor(draws[3],locale).advice} ${cardLabel(draws[4],locale)} offers ${meaningFor(draws[4],locale).keywords[0].toLowerCase()} as a possibility to reflect on, rather than a fixed destination.`,
+    `${opening}${cardLabel(draws[0],locale)}将${meaningFor(draws[0],locale).keywords[0]}放在当下的中心。作为指引，${cardLabel(draws[3],locale)}建议：${meaningFor(draws[3],locale).advice}${cardLabel(draws[4],locale)}带来的${meaningFor(draws[4],locale).keywords[0]}，是值得思考的一种可能，而非注定的终点。`);
 }

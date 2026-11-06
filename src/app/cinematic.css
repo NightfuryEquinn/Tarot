@@ -69,3 +69,44 @@
 @media(max-height:520px) and (min-width:601px){.fan-window{height:270px}.phase-choose .cinema-heading h1{font-size:30px}}
 
 @media(prefers-reduced-motion:reduce){.fan-card{transition:none}}
+
+/* Dealer table: the hit areas remain stationary while their card surfaces travel. */
+.phase-gather .cinema-stage,.phase-choose .cinema-stage{width:min(calc(100% - 48px),1160px);padding:8px 0 12px;min-height:0}
+.phase-gather .cinema-heading,.phase-choose .cinema-heading{margin-bottom:6px}
+.phase-gather .cinema-heading h1,.phase-choose .cinema-heading h1{font-size:clamp(30px,3.5vw,47px);margin-top:9px}
+.phase-gather .cinema-heading h1 br{display:none}
+.phase-gather .cinema-heading h1 em{margin-left:.2em}
+.dealer-table{width:100%;position:relative;--fan-height:clamp(205px,32svh,290px);--row-height:calc(var(--fan-height)/var(--fan-rows));--art-height:calc(var(--row-height)*.83)}
+.dealer-preview-zone{display:flex;align-items:center;justify-content:center;gap:35px;height:clamp(140px,23svh,210px);margin-bottom:7px}
+.dealer-preview{position:relative;height:calc(100% - 10px);aspect-ratio:.6;display:grid;place-items:center}
+.preview-frame{position:absolute;inset:0;border:1px solid #bfd8fa16;border-radius:3px}.preview-frame>.card-back{width:100%;height:100%}
+.preview-aura{position:absolute;inset:-20px;z-index:-1;background:radial-gradient(ellipse,#78b8e321,transparent 70%);opacity:0;transition:opacity .4s}.has-preview .preview-aura{opacity:1}
+.dealer-invitation{width:245px}.dealer-invitation>.eyebrow{font-size:7px;letter-spacing:1.8px}.dealer-invitation>p{white-space:pre-line;line-height:1.7;color:#b8c5d7;font-family:var(--serif);font-size:21px;margin:10px 0 15px;min-height:60px}.pick-card{min-height:44px;font-size:10px;padding:11px 17px;gap:15px}.pick-card:disabled{opacity:.35}
+.dealer-fans{width:100%;height:var(--fan-height);position:relative;isolation:isolate;background:radial-gradient(ellipse at 50% 80%,#517eae0a,transparent 75%)}
+.dealer-fans:after{content:'';position:absolute;bottom:3px;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,#bdcdec25,transparent);z-index:-1}
+.dealer-card{position:absolute;left:var(--card-x);top:calc(var(--card-row)*var(--row-height));width:calc(100%/var(--fan-columns));height:var(--row-height);padding:0;transform:translateX(-50%);background:transparent;border:0;isolation:isolate;min-width:24px}
+.dealer-card-position{position:absolute;left:50%;top:calc(4px + var(--card-curve)*9px);height:var(--art-height);aspect-ratio:.6;transform:translateX(-50%)}
+.dealer-card .deck-card-art{position:absolute;inset:0;width:100%;height:100%;max-width:none;transform:rotate(var(--card-angle));transform-origin:50% 100%;transition:opacity .25s}
+.dealer-card .card-back{border-width:1px;outline-offset:-3px;box-shadow:0 4px 12px #0006}.dealer-card .card-back:before{inset:4px}
+.dealer-card:focus-visible{outline:1px solid #c7d8eb;outline-offset:1px;border-radius:3px;z-index:5}.dealer-card:hover:not(:disabled){z-index:4}.dealer-card.previewing .deck-card-art{opacity:.14}.dealer-card.chosen .deck-card-art{opacity:.09}
+.dealer-number{position:absolute;bottom:1px;left:0;width:100%;text-align:center;font-size:6px;line-height:1;color:#b7c7d17a}.dealer-card>svg{position:absolute;inset:40% auto auto calc(50% - 6px);color:#d3bc8b}
+.dealer-tray{display:flex;justify-content:center;gap:12px;position:relative;margin-top:10px;padding-bottom:23px}.dealer-slot{width:26px;display:flex;align-items:center;flex-direction:column;gap:4px}.tray-frame{width:26px;aspect-ratio:.6;display:grid;place-items:center;border:1px solid #b6bfce2b;color:#8393ad;position:relative}.tray-frame>.card-back{width:100%;height:100%;border-width:1px;outline:none}.tray-frame .card-back:before{display:none}.dealer-slot small{font-size:6px;color:#8c9bb1}.dealer-slot.filled small{color:#dec690}.dealer-tray .stage-announcement{position:absolute;bottom:0;margin:0;font-size:9px}
+.scene-present .dealer-card:not(.chosen):not(.previewing) .card-back,.scene-present .preview-frame>.card-back,.scene-present .tray-frame>.card-back{opacity:0}
+.dealer-dealing .dealer-preview-zone,.dealer-dealing .dealer-tray,.dealer-dealing .dealer-number{visibility:hidden}.scene-present .dealer-dealing .dealer-card .card-back{opacity:0}
+.dealer-active .dealer-preview-zone,.dealer-active .dealer-tray{animation:dealer-appear .6s ease both}
+.gather-overlay{position:absolute;left:0;right:0;top:38%;text-align:center;pointer-events:none;z-index:3}.gather-overlay p{font-family:var(--serif);font-size:22px;color:#d2dbe6;margin-bottom:9px}.gather-overlay button{pointer-events:auto}.phase-gather .dealer-fans{opacity:1}.scene-fallback .dealer-dealing .dealer-fans{opacity:.25}
+@keyframes dealer-appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.language-switch select{font-family:var(--sans);font-size:10px;color:#c6bdac;background:#0b1421;border:1px solid #b5c1d52c;padding:8px 5px;min-height:36px;border-radius:3px;max-width:103px}.language-switch{display:flex;align-items:center}.site-header .language-switch{margin-left:auto;margin-right:20px}
+html[lang="zh-CN"]{--serif:"Songti SC","STSong","SimSun",serif;--sans:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}html[lang="zh-CN"] h1,html[lang="zh-CN"] h2,html[lang="zh-CN"] h3{line-height:1.4;letter-spacing:.02em}html[lang="zh-CN"] em{font-style:normal}html[lang="zh-CN"] .eyebrow,html[lang="zh-CN"] .cinema-control{letter-spacing:.08em}html[lang="zh-CN"] .cinema-heading h1{font-size:clamp(32px,4vw,60px)}html[lang="zh-CN"] .reading-copy p,html[lang="zh-CN"] .detail-copy p{line-height:1.95}
+@media(max-width:999px){.dealer-table{--fan-height:clamp(225px,37svh,330px)}.dealer-card-position{top:calc(2px + var(--card-curve)*6px)}.site-header{flex-wrap:wrap;height:auto;min-height:108px;padding-block:16px;gap:10px}.site-header .language-switch{margin-left:0;margin-right:0}}
+@media(max-width:600px){.phase-gather .cinema-header,.phase-choose .cinema-header{min-height:58px;padding:9px 14px}.cinema-controls{gap:8px}.language-switch select{font-size:9px;max-width:87px}.cinema-wordmark{font-size:11px}.cinema-control{font-size:7px}.phase-gather .cinema-stage,.phase-choose .cinema-stage{width:calc(100% - 24px);padding:0 0 8px}.phase-gather .cinema-heading h1,.phase-choose .cinema-heading h1,html[lang="zh-CN"] .phase-gather .cinema-heading h1,html[lang="zh-CN"] .phase-choose .cinema-heading h1{font-size:28px;margin-top:5px}.phase-gather .cinema-heading>.eyebrow{font-size:6px}.phase-choose .cinema-heading>p{display:none}.dealer-preview-zone{height:135px;gap:22px;margin-bottom:5px}.dealer-invitation{width:192px}.dealer-invitation>.eyebrow{font-size:6px;letter-spacing:1px}.dealer-invitation>p{font-size:17px;line-height:1.6;min-height:46px;margin:6px 0 9px}.pick-card{font-size:9px;padding:9px 12px;min-height:42px;gap:10px}.dealer-table{--fan-height:clamp(225px,35svh,310px)}.dealer-tray{margin-top:6px;padding-bottom:18px;gap:10px}.dealer-slot,.tray-frame{width:21px}.dealer-slot small{display:none}.phase-gather .cinema-footer,.phase-choose .cinema-footer{min-height:42px;padding:5px 14px 10px}.gather-overlay{top:35%}.gather-overlay p{font-size:18px}html[lang="zh-CN"] .cinema-heading h1{font-size:36px}.cinema-stage{width:calc(100% - 32px)}}
+@media(max-width:359px){.dealer-preview-zone{height:111px;gap:15px}.dealer-invitation{width:175px}.dealer-invitation>p{font-size:15px;min-height:39px}.dealer-table{--fan-height:230px}.phase-gather .cinema-heading h1,.phase-choose .cinema-heading h1{font-size:25px}.cinema-wordmark svg{display:none}.cinema-controls{gap:7px}}
+@media(prefers-reduced-motion:reduce){.dealer-active .dealer-preview-zone,.dealer-active .dealer-tray{animation:none}.preview-aura,.dealer-card .deck-card-art{transition:none}}
+
+.dealer-table{display:flex;flex-direction:column}.dealer-preview-zone{order:-1}
+
+.phase-gather .cinema-heading,.phase-choose .cinema-heading{min-height:100px}
+@media(max-width:600px){.phase-gather .cinema-heading,.phase-choose .cinema-heading{min-height:68px}.dealer-card .card-back>svg{width:75%;height:75%}.cinema-header .cinema-controls{flex-shrink:0}}
+
+.dealer-card-position{width:min(125%,calc(var(--row-height)*.9));height:auto;aspect-ratio:.6}
+.dealer-fans{margin-bottom:calc(var(--row-height)*.35 + 8px)}

@@ -1,11 +1,14 @@
 'use client';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useLanguage } from './Language';
+import type { CopyKey } from '@/data/interface.zh-CN';
 import { Icon } from './Icon';
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
-const OfflineContext=createContext<{status:string;offline:boolean;installed:boolean;act:()=>Promise<void>}|null>(null);
+const OfflineContext=createContext<{status:CopyKey;offline:boolean;installed:boolean;act:()=>Promise<void>}|null>(null);
 export function OfflineProvider({children}:{children:ReactNode}) {
-  const [status, setStatus] = useState('Preparing offline');
+  const {copy}=useLanguage();
+  const [status, setStatus] = useState<CopyKey>('Preparing offline');
   const [offline, setOffline] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration>();
   const [prompt, setPrompt] = useState<InstallPrompt>();
@@ -77,24 +80,25 @@ export function OfflineProvider({children}:{children:ReactNode}) {
   return <OfflineContext.Provider value={{status,offline,installed,act}}>
     {children}
     <dialog ref={help} className="info-dialog" aria-labelledby="install-info-title">
-      <button className="icon-button dialog-close" aria-label="Close installation information" onClick={() => help.current?.close()}><Icon name="close" /></button>
-      <Icon name="moon" size={34} /><h2 id="install-info-title">A little space, always with you.</h2>
-      <p>All 78 cards and their meanings are saved on this device once the indicator reads “Ready offline.” Your question and current reading stay in this browser.</p>
-      {!installed && <p>To install: use your browser’s <strong>Install app</strong> option. On iPhone or iPad, open Safari’s Share menu and choose <strong>Add to Home Screen</strong>.</p>}
-      <p className="muted small">Your browser may remove saved data when storage is low or browsing data is cleared. Reopen online to download it again.</p>
-      <button className="button secondary" onClick={() => help.current?.close()}>Got it <Icon name="check" size={16} /></button>
+      <button className="icon-button dialog-close" aria-label={copy("Close installation information")} onClick={() => help.current?.close()}><Icon name="close" /></button>
+      <Icon name="moon" size={34} /><h2 id="install-info-title">{copy("A little space, always with you.")}</h2>
+      <p>{copy("All 78 cards and their meanings are saved on this device once the indicator reads “Ready offline.” Your question and current reading stay in this browser.")}</p>
+      {!installed && <p>{copy("To install: use your browser’s")} <strong>{copy("Install app")}</strong>  {copy("option. On iPhone or iPad, open Safari’s Share menu and choose")} <strong>{copy("Add to Home Screen")}</strong>.</p>}
+      <p className="muted small">{copy("Your browser may remove saved data when storage is low or browsing data is cleared. Reopen online to download it again.")}</p>
+      <button className="button secondary" onClick={() => help.current?.close()}>{copy("Got it")}<Icon name="check" size={16} /></button>
     </dialog>
   </OfflineContext.Provider>;
 }
 
 export function OfflineStatus(){
+  const {copy}=useLanguage();
   const context=useContext(OfflineContext);
   if(!context)return null;
   const {status,offline,installed,act}=context;
   return (
-    <button className="offline-status" onClick={act} title={installed ? 'Offline app information' : 'Install app or view offline status'}>
+    <button className="offline-status" onClick={act} title={installed ? copy("Offline app information") : copy("Install app or view offline status")}>
       <span className={`status-dot ${status === 'Ready offline' ? 'ready' : ''}`} />
-      <span>{offline ? (status === 'Ready offline' ? 'You’re offline · ready' : 'You’re offline') : status}</span>
+      <span>{offline ? (status === 'Ready offline' ? copy("You’re offline · ready") : copy("You’re offline")) : copy(status)}</span>
       <Icon name={status === 'Update available' ? 'download' : 'chevron'} size={13} />
     </button>
   );

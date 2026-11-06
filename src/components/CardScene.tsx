@@ -10,14 +10,15 @@ import { getProject, types } from '@theatre/core';
 import animationState from '@/animation/ritual.theatre.json';
 import { cards } from '@/data/cards';
 import type { DrawnCard } from '@/lib/reading';
+import type { Locale } from '@/lib/locale';
 import type { RitualStage } from '@/lib/cinematic';
 
-type Props={stage:RitualStage;focus:number;deck:DrawnCard[];selected:number[];revealed:string[];skipVersion:number;onFailure:()=>void;onReady:()=>void};
+type Props={stage:RitualStage;focus:number;deck:DrawnCard[];selected:number[];revealed:string[];preview:number|null;pending:boolean;generation:number;locale:Locale;onIntroComplete:(generation:number)=>void;onPickComplete:(generation:number)=>void;skipVersion:number;onFailure:()=>void;onReady:()=>void};
 let instance=0;
 export default function CardScene(props:Props){
   const host=useRef<HTMLDivElement>(null),current=useRef(props);current.current=props;
   const sync=useRef<()=>void>(()=>{});
-  useEffect(()=>{sync.current();},[props.stage,props.focus,props.deck,props.selected,props.revealed,props.skipVersion]);
+  useEffect(()=>{sync.current();},[props.stage,props.focus,props.deck,props.selected,props.revealed,props.preview,props.pending,props.generation,props.locale,props.skipVersion]);
   useEffect(()=>{
     const container=host.current;if(!container)return;
     const world=container.parentElement!;
@@ -41,8 +42,9 @@ export default function CardScene(props:Props){
     const arrival=project.sheet('Arrival',key),arrivalMotion=arrival.object('Motion',{gather:types.number(0),camera:types.number(0),vignette:types.number(.18)});
     const fan=project.sheet('Fan',key),fanMotion=fan.object('Motion',{spread:types.number(1),shuffle:types.number(0),camera:types.number(0)});
     const finale=project.sheet('Finale',key),finaleMotion=finale.object('Motion',{progress:types.number(1),glow:types.number(0)});
-    const sheets=new Set([arrival,fan,finale]),playing=new Set<typeof fan>();let paused:(typeof fan)[]=[];
-    let live=true,frame=0,readySent=false,firstSync=true,layoutDirty=true,snapFrames=0,last=0,lastDraw=0,time=0,slowFrames=0,wasStage: RitualStage|undefined,skip=current.current.skipVersion,loaded=false;
+    const dealer=project.sheet('Dealer',key),dealerMotion=dealer.object('Motion',{progress:types.number(0)});
+    const sheets=new Set([arrival,fan,finale,dealer]),playing=new Set<typeof fan>();let paused:(typeof fan)[]=[];
+    let live=true,frame=0,readySent=false,firstSync=true,layoutDirty=true,snapFrames=0,last=0,lastDraw=0,time=0,slowFrames=0,wasStage: RitualStage|undefined,skip=current.current.skipVersion,loaded=false,introCompleteSent=false,pickCompleted=0,generation=current.current.generation,lowPower=false;
     const disposables:{dispose:()=>void}[]=[composer,bloom,finish,output];
     const textures:THREE.Texture[]=[];
     const play=(sheet:typeof fan)=>{sheet.sequence.pause();sheet.sequence.position=0;playing.add(sheet);void sheet.sequence.play().then(()=>playing.delete(sheet));};
@@ -95,9 +97,10 @@ export default function CardScene(props:Props){
     const update=()=>{
       if(!loaded||!live)return;
       const p=current.current;layoutDirty=true;
+      if(generation!==p.generation){generation=p.generation;introCompleteSent=false;pickCompleted=0;wasStage=undefined;playing.forEach(sheet=>sheet.sequence.pause());playing.clear();nodes.forEach(node=>{node.initialized=false;node.opacity=0;node.selected=false;node.revealed=false;});}
       if(p.stage!==wasStage){
-        if(p.stage==='gather')play(arrival);
-        if(p.stage==='choose'){if(wasStage==='gather')play(fan);else fan.sequence.position=2.3;}
+        if(p.stage==='gather'){introCompleteSent=false;play(dealer);play(arrival);}
+        if(p.stage==='choose'){dealer.sequence.position=3.2;fan.sequence.position=2.3;}
         if(p.stage==='complete'){if(wasStage==='reveal')play(finale);else finale.sequence.position=1.2;}
         wasStage=p.stage;
       }
@@ -113,53 +116,77 @@ export default function CardScene(props:Props){
         },undefined,()=>{if(live)current.current.onFailure();});}
       });
       firstSync=false;
-      if(skip!==p.skipVersion){snapFrames=2;skip=p.skipVersion;playing.forEach(sheet=>sheet.sequence.pause());playing.clear();arrival.sequence.position=1.9;fan.sequence.position=2.3;finale.sequence.position=1.2;nodes.forEach(node=>{if(node.revealed)node.revealSheet.sequence.position=.8;if(node.selected)node.selectSheet.sequence.position=.65;});}
+      if(skip!==p.skipVersion){snapFrames=2;skip=p.skipVersion;playing.forEach(sheet=>sheet.sequence.pause());playing.clear();dealer.sequence.position=3.2;arrival.sequence.position=1.9;fan.sequence.position=2.3;finale.sequence.position=1.2;nodes.forEach(node=>{if(node.revealed)node.revealSheet.sequence.position=.8;if(node.selected)node.selectSheet.sequence.position=.65;});}
     };
     sync.current=update;
-    let targets=new Map<number,DOMRect>(),focal:DOMRect|undefined,tableau:DOMRect[]=[];
+    let targets=new Map<number,DOMRect>(),angles=new Map<number,number>(),focal:DOMRect|undefined,preview:DOMRect|undefined,tableau:DOMRect[]=[],tray:DOMRect[]=[];
     let bounds=container.getBoundingClientRect();
     const measure=()=>{
       bounds=container.getBoundingClientRect();layoutDirty=false;
-      targets=new Map([...world.querySelectorAll<HTMLElement>('[data-card-index]')].map(el=>[Number(el.dataset.cardIndex),(el.querySelector('.deck-card-art')??el).getBoundingClientRect()]));
+      targets=new Map([...world.querySelectorAll<HTMLElement>('[data-card-index]')].map(el=>[Number(el.dataset.cardIndex),(el.querySelector('.dealer-card-position')??el).getBoundingClientRect()]));
+      angles=new Map([...world.querySelectorAll<HTMLElement>('[data-card-index]')].map(el=>[Number(el.dataset.cardIndex),Number(el.dataset.angle)||0]));
+      preview=world.querySelector('.preview-frame')?.getBoundingClientRect();
+      tray=[...world.querySelectorAll('.tray-frame')].map(el=>el.getBoundingClientRect());
       focal=world.querySelector('.focal-frame')?.getBoundingClientRect();
       tableau=[...world.querySelectorAll('.tableau-frame')].map(el=>el.getBoundingClientRect());
     };
     const observer=new ResizeObserver(()=>{const width=container.clientWidth,height=container.clientHeight;renderer.setSize(width,height);composer.setSize(width,height);bloom.setSize(width*.6,height*.6);camera.aspect=width/height;camera.updateProjectionMatrix();layoutDirty=true;});observer.observe(container);observer.observe(world);
-    const markLayout=()=>{layoutDirty=true;};window.addEventListener('scroll',markLayout,{passive:true});
+    const markLayout=()=>{layoutDirty=true;};window.addEventListener('resize',markLayout);window.addEventListener('scroll',markLayout,{passive:true});document.fonts?.addEventListener('loadingdone',markLayout);
     const rectToWorld=(rect:DOMRect)=>{
       const height=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*camera.position.z,width=height*camera.aspect;
       return {x:((rect.left+rect.width/2-bounds.left)/bounds.width-.5)*width,y:(.5-(rect.top+rect.height/2-bounds.top)/bounds.height)*height,w:rect.width/bounds.width*width,h:rect.height/bounds.height*height};
     };
     function render(now:number){
       if(!live)return;frame=requestAnimationFrame(render);
-      const interval=1000/(innerWidth<700?30:60),elapsed=now-last;if(elapsed<interval-.5)return;
+      const interval=1000/(lowPower?30:60),elapsed=now-last;if(elapsed<interval-.5)return;
       const delta=lastDraw?Math.min((now-lastDraw)/1000,.08):1/60;lastDraw=now;
       if(last&&elapsed>48)slowFrames++;else slowFrames=Math.max(0,slowFrames-1);
-      if(slowFrames>45){bloom.enabled=false;starGeometry.setDrawRange(0,120);}
+      if(slowFrames>45){lowPower=true;bloom.enabled=false;starGeometry.setDrawRange(0,120);}
       time+=delta;last=now-(elapsed%interval);
       if(layoutDirty)measure(); // Read layout only after a state, viewport, or scroll change.
       const p=current.current,motion=arrivalMotion.value;camera.position.z=12-motion.camera*.5;
       finish.uniforms.strength.value=p.stage==='gather'?motion.vignette:.18;finish.uniforms.time.value=time;
-      const gathering=p.stage==='gather'?motion.gather:0;
+      const progress=dealerMotion.value.progress;
+      const gathering=p.stage==='gather'?Math.sin(progress*Math.PI):0;
       for(let i=0;i<420;i++){starPositions[i*3]=starBase[i*3]*(1-gathering*.45)+Math.sin(time*.07+i)*.08;starPositions[i*3+1]=starBase[i*3+1]*(1-gathering*.45)+Math.sin(time*.09+i*.7)*.12;}
       starGeometry.attributes.position.needsUpdate=true;stars.rotation.z=Math.sin(time*.025)*.015;
       const active=new Set<string>();
       const place=(id:string,rect:DOMRect,rotation=0,spread=1)=>{
         const node=nodes.get(id)!;const pos=rectToWorld(rect);active.add(id);
+        node.group.renderOrder=p.deck.findIndex(draw=>draw.id===id)+1;
         node.targetPosition.set(pos.x*spread,pos.y*spread,0);node.targetScale.set(pos.w,pos.h,1);node.targetRotation=rotation;
         const draw=p.deck.find(d=>d.id===id);node.front.rotation.z=draw?.reversed?Math.PI:0;
         return pos;
       };
       halo.visible=p.stage==='question'||p.stage==='gather'||p.stage==='reveal'||p.stage==='complete';
       halo.scale.set(5.5,5.5,1);halo.position.set(0,-.2,-.8);haloMaterial.opacity=.025+gathering*.15;
+      const smooth=(value:number)=>{const t=THREE.MathUtils.clamp(value,0,1);return t*t*(3-2*t);};
       if(p.stage==='gather'){
-        p.deck.slice(0,13).forEach((draw,i)=>{const node=nodes.get(draw.id)!;active.add(draw.id);node.targetScale.set(.7,1.16,1);node.targetPosition.set(Math.sin(i*2)*motion.gather*.35,-.7+Math.cos(i)*motion.gather*.12,i*.005);node.targetRotation=(i-6)*.015;});
+        // One timeline retains each mesh from the deck through the final fan position.
+        const cut=smooth((progress-.12)/.15)*(1-smooth((progress-.48)/.18));
+        const spread=smooth((progress-.69)/.31);
+        p.deck.forEach((draw,i)=>{
+          const rect=targets.get(i);if(!rect)return;
+          const node=nodes.get(draw.id)!,pos=place(draw.id,rect),side=i%2?1:-1;
+          const riffle=smooth((progress-(.38+i/78*.2))/.08);
+          const packet=smooth((progress-.12)/.15)*(1-riffle);
+          const stackX=side*packet*1.05;
+          const stackY=-.35+Math.sin(riffle*Math.PI)*.22+Math.sin(i*.18+progress*10)*packet*.08;
+          node.targetPosition.set(THREE.MathUtils.lerp(stackX,pos.x,spread),THREE.MathUtils.lerp(stackY,pos.y,spread),THREE.MathUtils.lerp(i*.003,0,spread));
+          node.targetScale.set(THREE.MathUtils.lerp(.8,pos.w,spread),THREE.MathUtils.lerp(1.33,pos.h,spread),1);
+          node.targetRotation=THREE.MathUtils.lerp(side*cut*.22,THREE.MathUtils.degToRad(-(angles.get(i)??0)),spread);
+        });
+        haloMaterial.opacity=.07+cut*.12;halo.scale.set(5,5,1);
       }
-      if(p.stage==='choose')targets.forEach((rect,index)=>{
-        const draw=p.deck[index];if(!draw)return;const node=nodes.get(draw.id)!;
-        if(node.selected&&node.selectObject.value.progress>=.99)return;
-        const pos=place(draw.id,rect,0,fanMotion.value.spread);node.targetPosition.y=pos.y+node.selectObject.value.progress*.45;node.targetScale.multiplyScalar(1-node.selectObject.value.progress*.25);
-      });
+      if(p.stage==='choose'){
+        targets.forEach((rect,index)=>{
+          const draw=p.deck[index];if(!draw||p.selected.includes(index))return;
+          const lifted=p.preview===index&&preview;
+          place(draw.id,lifted?preview!:rect,lifted?0:THREE.MathUtils.degToRad(-(angles.get(index)??0)));
+          if(lifted){nodes.get(draw.id)!.targetPosition.z=.08;nodes.get(draw.id)!.group.renderOrder=200;}
+        });
+        p.selected.forEach((index,slot)=>{if(tray[slot])place(p.deck[index].id,tray[slot]);});
+      }
       if(p.stage==='reveal'&&focal){
         const draw=p.deck[p.selected[p.focus]];if(draw){const pos=place(draw.id,focal);const progress=nodes.get(draw.id)!.revealObject.value.progress;halo.position.set(pos.x,pos.y,-.8);halo.scale.set(pos.w*2.4,pos.h*1.7,1);haloMaterial.opacity=.055+Math.sin(progress*Math.PI)*.2;}
       }
@@ -179,6 +206,9 @@ export default function CardScene(props:Props){
         node.group.rotation.z=THREE.MathUtils.lerp(node.group.rotation.z,node.targetRotation,blend);
         node.frontMaterial.opacity=node.opacity;node.backFace.opacity=node.opacity;node.edgeFace.opacity=node.opacity;
       });
+      const settled=(node:typeof nodes extends Map<string,infer N>?N:never)=>node.group.position.distanceTo(node.targetPosition)<.012&&node.group.scale.distanceTo(node.targetScale)<.012;
+      if(p.stage==='gather'&&progress>=.999&&!introCompleteSent&&p.deck.every(draw=>settled(nodes.get(draw.id)!))){introCompleteSent=true;current.current.onIntroComplete(generation);}
+      if(p.stage==='choose'&&p.pending&&p.selected.length>pickCompleted){const node=nodes.get(p.deck[p.selected[p.selected.length-1]].id)!;if(node.selectObject.value.progress>=.999&&settled(node)){pickCompleted=p.selected.length;current.current.onPickComplete(generation);}}
       if(snapFrames>0)snapFrames--;
       try{composer.render();if(!readySent){readySent=true;current.current.onReady();}}catch{current.current.onFailure();cancelAnimationFrame(frame);}
     }
@@ -190,7 +220,7 @@ export default function CardScene(props:Props){
     renderer.domElement.addEventListener('webglcontextlost',lost);document.addEventListener('visibilitychange',visibility);
     void project.ready.then(()=>{if(!live)return;loaded=true;update();frame=requestAnimationFrame(render);});
     return()=>{
-      live=false;window.removeEventListener('scroll',markLayout);sync.current=()=>{};cancelAnimationFrame(frame);observer.disconnect();playing.forEach(sheet=>sheet.sequence.pause());paused.forEach(sheet=>sheet.sequence.pause());sheets.forEach(sheet=>sheet.detachObject('Motion'));
+      live=false;document.fonts?.removeEventListener('loadingdone',markLayout);window.removeEventListener('resize',markLayout);window.removeEventListener('scroll',markLayout);sync.current=()=>{};cancelAnimationFrame(frame);observer.disconnect();playing.forEach(sheet=>sheet.sequence.pause());paused.forEach(sheet=>sheet.sequence.pause());sheets.forEach(sheet=>sheet.detachObject('Motion'));
       renderer.domElement.removeEventListener('webglcontextlost',lost);document.removeEventListener('visibilitychange',visibility);textures.forEach(texture=>texture.dispose());disposables.forEach(resource=>resource.dispose());
       renderer.forceContextLoss();renderer.dispose();renderer.domElement.remove();
     };

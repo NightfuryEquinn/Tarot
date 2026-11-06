@@ -517,6 +517,56 @@
           }
         }
       }
+    },
+    "Dealer": {
+      "staticOverrides": {
+        "byObject": {}
+      },
+      "sequence": {
+        "type": "PositionalSequence",
+        "length": 3.2,
+        "subUnitsPerUnit": 60,
+        "tracksByObject": {
+          "Motion": {
+            "trackIdByPropPath": {
+              "[\"progress\"]": "dealer-progress"
+            },
+            "trackData": {
+              "dealer-progress": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "dealer-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0,
+                      0,
+                      1,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "dealer-1",
+                    "position": 3.2,
+                    "value": 1,
+                    "handles": [
+                      0,
+                      0,
+                      1,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
