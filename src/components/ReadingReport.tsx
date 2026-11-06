@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { animate, createScope, stagger } from "animejs";
 import { useLanguage } from "./Language";
 import { getCard } from "@/lib/locale";
 import { Icon } from "./Icon";
@@ -12,29 +13,44 @@ import {
   textButton,
 } from "./ui";
 import {
-  connectReading,
+  buildReading,
   meaningFor,
   getPositions,
-  summarizeReading,
   type DrawnCard,
 } from "@/lib/reading";
 export function ReadingReport({
   draws,
+  question = "",
+  reduced = true,
   onRestart,
 }: {
   draws: DrawnCard[];
+  question?: string;
+  reduced?: boolean;
   onRestart: () => void;
 }) {
   const { locale, t, copy } = useLanguage(),
     positions = getPositions(locale);
-  const connections = connectReading(draws, locale);
+  const reading = useMemo(() => buildReading(draws, question, locale), [draws, question, locale]);
+  const { connections } = reading;
+  const root = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (reduced) return;
+    const scope = createScope({ root }).add(() => {
+      animate("[data-report-enter]", {
+        opacity: [0, 1], translateY: [12, 0], duration: 500,
+        delay: stagger(80), ease: "out(3)",
+      });
+    });
+    return () => scope.revert();
+  }, [reduced]);
   useEffect(() => {
     document.getElementById("reading")?.focus({ preventScroll: true });
     if (location.hash === "#about")
       document.getElementById("about")?.scrollIntoView();
   }, []);
   return (
-    <main id="main" className={"py-12 sm:py-20"}>
+    <main ref={root} id="main" className={"py-12 sm:py-20"}>
       <section
         className={`${sectionWidth} outline-none [&>h2]:mb-10 [&>h2]:mt-4 [&>h2]:font-display [&>h2]:text-4xl [&>h2]:leading-tight sm:[&>h2]:text-6xl [&_em]:text-gold`}
         id="reading"
@@ -44,30 +60,42 @@ export function ReadingReport({
         <h1 className="mb-10 mt-4 font-display text-4xl leading-tight sm:text-6xl">
           {copy("The threads")} <em>{copy("between the cards.")}</em>
         </h1>
+        <div data-report-enter className="mb-8 max-w-3xl space-y-3">
+          {question.trim() && <blockquote className="break-words font-display text-2xl italic text-parchment">“{question}”</blockquote>}
+          <p className="text-sm text-gold">{t("Reading focus", "解读视角")}: {reading.context.name}</p>
+          <p className="text-sm leading-7 text-muted">
+            {t("Your question offers a lens for reflection. Read each card through its position and orientation, then consider how the cards respond to one another.", "你的问题为思考提供视角。先结合牌位与正逆位理解每张牌，再看它们如何彼此回应。")}
+          </p>
+        </div>
         <div
+          data-report-enter
           className={
-            "flex items-start gap-5 rounded-sm border-y border-line bg-gold/[0.03] px-1 py-7 sm:gap-7 sm:px-7 [&>svg]:shrink-0 [&>svg]:text-gold [&_p]:mt-3 [&_p]:font-display [&_p]:text-2xl [&_p]:leading-relaxed sm:[&_p]:text-3xl"
+            "flex flex-col items-start gap-4 rounded-sm border-y border-line bg-gold/[0.03] p-6 sm:flex-row sm:gap-6 sm:p-8 [&>svg]:shrink-0 [&>svg]:text-gold [&_p]:mt-4 [&_p]:font-display [&_p]:text-2xl [&_p]:leading-relaxed"
           }
         >
           <Icon name="sun" size={35} />
           <div>
             <span className={eyebrow}>{copy("THE STORY OF YOUR SPREAD")}</span>
-            <p>{summarizeReading(draws, locale)}</p>
+            <p>{reading.summary}</p>
           </div>
         </div>
-        <div className={"mt-8 grid gap-4 md:grid-cols-2"}>
+        <div className={"mt-8 grid gap-6 lg:grid-cols-3"}>
           {connections.map((connection, i) => (
             <article
+              data-report-enter
               className={
                 "relative rounded-sm border border-line bg-panel/50 p-6 sm:p-8 [&>h3]:mb-4 [&>h3]:mt-5 [&>h3]:font-display [&>h3]:text-3xl [&>p]:text-sm [&>p]:leading-7 [&>p]:text-muted"
               }
               key={connection.ids.join("-")}
             >
               <span
-                className={"mb-5 flex justify-between text-xs text-gold/65"}
+                className={"mb-5 flex justify-between text-sm text-gold/65"}
               >
                 0{i + 1} <Icon name="star" size={14} />
               </span>
+              {connection.kind !== "tension" && connection.relations.includes("tension") && (
+                <span className="mt-2 block text-sm text-gold">{copy("A USEFUL TENSION")}</span>
+              )}
               <span className={eyebrow}>
                 {connection.kind === "bridge"
                   ? copy("MAJOR MEETS MINOR")
@@ -86,6 +114,7 @@ export function ReadingReport({
           {draws.map((draw, i) => {
             const card = getCard(draw.id, locale),
               meaning = meaningFor(draw, locale);
+            const interpretation = reading.cards[i];
             return (
               <article
                 className={
@@ -113,7 +142,7 @@ export function ReadingReport({
                 >
                   <span className={eyebrow}>
                     0{i + 1} / {positions[i].label.toUpperCase()}{" "}
-                    <span className={"ml-3 inline-block text-[9px] text-muted"}>
+                    <span className={"ml-3 inline-block text-sm text-muted"}>
                       {draw.reversed ? copy("REVERSED") : copy("UPRIGHT")}
                     </span>
                   </span>
@@ -128,12 +157,11 @@ export function ReadingReport({
                       "font-display text-xl! italic text-parchment/85!"
                     }
                   >
-                    {t(
-                      `${positions[i].context}, this card asks you to consider ${meaning.keywords[0].toLowerCase()}.`,
-                      `${positions[i].context}，这张牌邀请你思考「${meaning.keywords[0]}」。`,
-                    )}
+                    {interpretation.explanation}
                   </p>
                   <p>{meaning.text}</p>
+                  <p>{interpretation.application}</p>
+                  <p>{interpretation.orientation}</p>
                   <div className={practicalNote}>
                     <Icon name="star" size={16} />
                     <p>
@@ -143,7 +171,7 @@ export function ReadingReport({
                   </div>
                   <details
                     className={
-                      "mt-5 text-xs leading-7 text-muted [&>summary]:min-h-11 [&>summary]:py-2 [&>summary]:text-gold [&>p]:pt-3 [&>p]:text-sm"
+                      "mt-5 text-sm leading-7 text-muted [&>summary]:min-h-11 [&>summary]:py-2 [&>summary]:text-gold [&>p]:pt-3 [&>p]:text-sm"
                     }
                   >
                     <summary>
@@ -157,6 +185,17 @@ export function ReadingReport({
               </article>
             );
           })}
+        </div>
+        <div className="mt-10 grid gap-6 border-y border-line bg-gold/[0.025] py-8 sm:grid-cols-2 sm:gap-10">
+          <div>
+            <h2 className={eyebrow}>{t("ONE NEXT STEP", "下一小步")}</h2>
+            <p className="mt-4 text-base leading-7 text-parchment">{reading.nextStep}</p>
+            <p className="mt-3 text-sm leading-7 text-muted">{reading.context.lens}</p>
+          </div>
+          <div>
+            <h2 className={eyebrow}>{t("A QUESTION TO KEEP", "留给自己的问题")}</h2>
+            <p className="mt-4 text-base leading-7 text-parchment">{reading.reflection}</p>
+          </div>
         </div>
         <div
           className={
@@ -216,7 +255,7 @@ export function ReadingReport({
             </p>
             <span
               className={
-                "mt-auto flex min-h-11 items-center gap-3 pt-6 text-xs text-gold"
+                "mt-auto flex min-h-11 items-center gap-3 pt-6 text-sm text-gold"
               }
             >
               {copy("Meet the archetypes")}
@@ -250,7 +289,7 @@ export function ReadingReport({
             </p>
             <span
               className={
-                "mt-auto flex min-h-11 items-center gap-3 pt-6 text-xs text-gold"
+                "mt-auto flex min-h-11 items-center gap-3 pt-6 text-sm text-gold"
               }
             >
               {copy("Discover the four suits")}
@@ -283,7 +322,7 @@ export function ReadingReport({
         </div>
       </section>
       <section
-        className={`${sectionWidth} mt-10 [&_summary]:min-h-11 [&_summary]:py-3 [&_summary]:text-xs [&_summary]:text-gold [&_p]:max-w-3xl [&_p]:pt-3 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-muted`}
+        className={`${sectionWidth} mt-10 [&_summary]:min-h-11 [&_summary]:py-3 [&_summary]:text-sm [&_summary]:text-gold [&_p]:max-w-3xl [&_p]:pt-3 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-muted`}
       >
         <details>
           <summary>{copy("How to read your spread")}</summary>

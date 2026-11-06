@@ -7,12 +7,8 @@ export function CardBack({ compact = false }: { compact?: boolean }) {
     >
       <span className="absolute inset-[5%] rounded-[2px] border border-gold/40" />
       <span className="absolute inset-[8%] border border-gold/15" />
-      <span className="absolute left-1/2 top-[14%] -translate-x-1/2 text-[clamp(6px,1.1vw,15px)]">
-        ✦
-      </span>
-      <span className="absolute bottom-[14%] left-1/2 -translate-x-1/2 text-[clamp(6px,1.1vw,15px)]">
-        ✦
-      </span>
+      <svg viewBox="0 0 16 16" fill="currentColor" className="absolute left-1/2 top-[14%] w-[14%] -translate-x-1/2"><path d="M8 0 10 6 16 8 10 10 8 16 6 10 0 8 6 6Z" /></svg>
+      <svg viewBox="0 0 16 16" fill="currentColor" className="absolute bottom-[14%] left-1/2 w-[14%] -translate-x-1/2"><path d="M8 0 10 6 16 8 10 10 8 16 6 10 0 8 6 6Z" /></svg>
       <span className="absolute left-1/2 top-1/2 aspect-square w-[62%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gold/35" />
       <span className="absolute left-1/2 top-1/2 aspect-square w-[46%] -translate-x-1/2 -translate-y-1/2 rotate-45 border border-gold/35" />
       <span className="absolute left-1/2 top-1/2 aspect-square w-[30%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gold/60 bg-gold/[0.07] shadow-[0_0_18px_#d8b88615]" />
@@ -21,12 +17,8 @@ export function CardBack({ compact = false }: { compact?: boolean }) {
         <>
           <span className="absolute left-[14%] top-[12%] h-[76%] w-px bg-gradient-to-b from-transparent via-gold/30 to-transparent" />
           <span className="absolute right-[14%] top-[12%] h-[76%] w-px bg-gradient-to-b from-transparent via-gold/30 to-transparent" />
-          <span className="absolute left-[22%] top-[27%] text-[9px] opacity-50">
-            ·
-          </span>
-          <span className="absolute right-[22%] bottom-[27%] text-[9px] opacity-50">
-            ·
-          </span>
+          <span className="absolute left-[22%] top-[27%] aspect-square w-[2%] rounded-full bg-gold/50" />
+          <span className="absolute right-[22%] bottom-[27%] aspect-square w-[2%] rounded-full bg-gold/50" />
           <span className="absolute left-1/2 top-[9%] h-[10%] w-px bg-gold/30" />
           <span className="absolute bottom-[9%] left-1/2 h-[10%] w-px bg-gold/30" />
         </>

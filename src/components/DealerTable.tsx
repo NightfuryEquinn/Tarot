@@ -89,6 +89,28 @@ export function DealerTable({
       `[data-slot="${selected.length - 1}"]`,
     );
     if (!el) return;
+    const source = root.current?.querySelector<HTMLElement>(`[data-card-index="${selected[selected.length - 1]}"] [data-deck-art]`);
+    const from = source?.getBoundingClientRect();
+    const to = el.getBoundingClientRect();
+    let flight: ReturnType<typeof animate> | undefined;
+    let ghost: HTMLElement | undefined;
+    if (source && from && from.width > 0 && to.width > 0) {
+      ghost = source.cloneNode(true) as HTMLElement;
+      ghost.removeAttribute("data-deck-art");
+      ghost.setAttribute("aria-hidden", "true");
+      Object.assign(ghost.style, {
+        position: "fixed", left: `${from.left}px`, top: `${from.top}px`,
+        width: `${from.width}px`, height: `${from.height}px`,
+        pointerEvents: "none", zIndex: "40", transformOrigin: "top left",
+      });
+      document.body.appendChild(ghost);
+      flight = animate(ghost, {
+        translateX: [0, to.left - from.left], translateY: [0, to.top - from.top],
+        scaleX: [1, to.width / from.width], scaleY: [1, to.height / from.height],
+        opacity: [1, 0.3], duration: 400, ease: "inOut(3)",
+        onComplete: () => ghost?.remove(),
+      });
+    }
     const animation = animate(el, {
       opacity: [0, 1],
       translateY: [-12, 0],
@@ -98,11 +120,13 @@ export function DealerTable({
     });
     return () => {
       animation.revert();
+      flight?.cancel();
+      ghost?.remove();
     };
   }, [selected.length, reduced]);
   return (
     <div ref={root} className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col">
-      <div className="mb-2 flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[9px] tracking-wider text-muted sm:text-[10px]">
+      <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-muted">
         <span>{t("THE COMPLETE DECK · 78 CARDS", "完整牌组 · 78 张牌")}</span>
         <span>
           {t("All in view · Tap to choose", "全部呈现 · 轻触选择")}
@@ -117,7 +141,7 @@ export function DealerTable({
           "全部78张背面朝上的牌。使用方向键浏览，按回车键或空格键选择。",
         )}
         aria-busy={!active}
-        className="relative isolate min-h-0 flex-1 rounded-lg border border-line bg-ink/45"
+        className="relative isolate min-h-[clamp(12rem,35dvh,28rem)] flex-1 rounded-lg border border-line bg-ink/45"
       >
         {deck.map((item, index) => {
           const chosen = selected.includes(index);
@@ -192,7 +216,7 @@ export function DealerTable({
       </div>
       <div className="mt-2 flex shrink-0 items-center justify-between gap-3">
         <span className={eyebrow}>{t("YOUR SPREAD", "你的牌阵")}</span>
-        <p aria-live="polite" className="text-xs text-gold">
+        <p aria-live="polite" className="text-sm text-gold">
           {t(
             `${selected.length} of 5 chosen`,
             `已选择 ${selected.length} / 5 张牌`,
@@ -205,7 +229,7 @@ export function DealerTable({
         className="mt-2 grid shrink-0 grid-cols-5 gap-2 sm:gap-5"
       >
         {positions.map((position, i) => (
-          <div key={i} className="text-center">
+          <div key={i} className="min-w-0 text-center">
             <div
               className={`mx-auto flex aspect-[3/4] h-[clamp(1.25rem,6dvh,3rem)] items-center justify-center rounded-sm border ${selected[i] !== undefined ? "border-transparent" : "border-dashed border-gold/25 bg-gold/[0.025]"}`}
             >
@@ -219,8 +243,8 @@ export function DealerTable({
                 </span>
               )}
             </div>
-            <span className="mt-1 block text-[8px] leading-3 text-muted sm:text-[10px]">
-              {position.label}
+            <span title={position.label} className="mt-2 block text-sm leading-5 text-muted [overflow-wrap:anywhere]">
+              {position.name}
             </span>
           </div>
         ))}

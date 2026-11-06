@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { animate, createScope } from "animejs";
+import { animate, createScope, stagger } from "animejs";
 import {
   emptyReading,
   meaningFor,
@@ -27,6 +27,8 @@ import { DealerTable } from "./DealerTable";
 import { LanguageSwitch, useLanguage } from "./Language";
 import { OracleArtwork } from "./OracleArtwork";
 import { RevealCard } from "./RevealCard";
+import { ShuffleDeck } from "./ShuffleDeck";
+import { isRitualFocused, useSecondaryFade } from "@/lib/focus";
 import { CelestialBackdrop } from "./CelestialBackdrop";
 import {
   dialogStyle,
@@ -61,16 +63,20 @@ export function TarotExperience() {
   const [resetOpen, setResetOpen] = useState(false),
     [sound, setSound] = useState(false);
   const root = useRef<HTMLElement>(null),
+    frame = useRef<HTMLDivElement>(null),
     title = useRef<HTMLHeadingElement>(null),
     restartDialog = useRef<HTMLDialogElement>(null);
   const audio = useRef<Ambience | null>(null),
-    turnLock = useRef(false);
+    turnLock = useRef(false),
+    shuffleLock = useRef(false);
   const hasMotion = ready && !reduced && !simple;
   const draws = state.selected.map((index) => state.deck[index]),
     draw = draws[focus];
   const revealed = !!draw && state.revealed.includes(draw.id),
     card = draw ? getCard(draw.id, locale) : undefined;
   const viewOnly = report && state.revealed.length === 5;
+  const focused = !viewOnly && isRitualFocused(stage, state.question);
+  useSecondaryFade(frame, focused, !hasMotion);
   const finishIntro = useCallback(
     () => setStage((current) => (current === "gather" ? "choose" : current)),
     [],
@@ -149,6 +155,10 @@ export function TarotExperience() {
         duration: 600,
         ease: "out(4)",
       });
+      animate("[data-spread-card]", {
+        opacity: [0, 1], translateY: [20, 0], scale: [0.96, 1],
+        duration: 650, delay: stagger(90), ease: "out(4)",
+      });
     });
     return () => scope.revert();
   }, [stage, focus, viewOnly, ready, hasMotion]);
@@ -174,10 +184,19 @@ export function TarotExperience() {
     else restartDialog.current?.close();
   }, [resetOpen]);
   const begin = () => {
+    if (!ready || state.selected.length || !["question", "choose"].includes(stage)) return;
+    shuffleLock.current = false;
+    setNotice("");
+    setStage("shuffle");
+  };
+  const stopShuffle = () => {
+    if (stage !== "shuffle" || shuffleLock.current) return;
+    shuffleLock.current = true;
     try {
       dispatch({ type: "start", deck: shuffleDeck(state.reversals) });
       setStage("gather");
     } catch {
+      shuffleLock.current = false;
       setNotice("shuffle");
     }
   };
@@ -215,6 +234,7 @@ export function TarotExperience() {
     setBusy(false);
     setResetOpen(false);
     turnLock.current = false;
+    shuffleLock.current = false;
     history.replaceState(null, "", location.pathname);
     window.scrollTo(0, 0);
   };
@@ -245,7 +265,7 @@ export function TarotExperience() {
   const step =
     stage === "question"
       ? 0
-      : stage === "gather" || stage === "choose"
+      : stage === "shuffle" || stage === "gather" || stage === "choose"
         ? 1
         : stage === "reveal"
           ? 2
@@ -266,7 +286,7 @@ export function TarotExperience() {
   };
   const choosing = !viewOnly && (stage === "gather" || stage === "choose");
   return (
-    <div className={`relative isolate ${choosing ? "flex h-dvh flex-col" : "min-h-dvh"}`}>
+    <div ref={frame} data-ritual-focused={focused} className={`relative isolate min-h-dvh ${choosing ? "flex flex-col" : ""}`}>
       <CelestialBackdrop />
       {hasMotion && !failed && !viewOnly && (
         <CelestialScene onFailure={() => setFailed(true)} />
@@ -274,32 +294,33 @@ export function TarotExperience() {
       {viewOnly ? (
         <>
           <Header />
-          <ReadingReport draws={draws} onRestart={() => setResetOpen(true)} />
+          <ReadingReport draws={draws} question={state.question} reduced={!hasMotion} onRestart={() => setResetOpen(true)} />
           <Footer />
         </>
       ) : (
         <>
           <header
-            className={`${sectionWidth} relative z-10 flex shrink-0 items-center justify-between border-b border-line ${choosing ? "gap-2 py-2 max-sm:[&>a>span:last-child]:hidden" : "min-h-24 flex-wrap gap-3 py-5"}`}
+            className={`${sectionWidth} relative z-20 flex min-h-24 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line py-4 sm:gap-4`}
           >
             <Brand />
             <nav
+              data-ritual-secondary
               aria-label={t("Main navigation", "主导航")}
               className="hidden items-center gap-8 md:flex"
             >
               <a
                 href="#ritual"
-                className="relative flex min-h-11 items-center text-xs text-gold after:absolute after:bottom-0 after:left-1/2 after:size-1 after:-translate-x-1/2 after:rounded-full after:bg-gold"
+                className="relative flex min-h-11 items-center text-sm text-gold after:absolute after:bottom-0 after:left-1/2 after:size-1 after:-translate-x-1/2 after:rounded-full after:bg-gold"
               >
                 {t("The ritual", "塔罗仪式")}
               </a>
               <Link href="/cards/" className={textButton}>
                 {t("The deck", "塔罗牌库")}
-                <span className="text-[9px] text-gold/65">78</span>
+                <span className="text-sm text-gold/65">78</span>
               </Link>
             </nav>
             <div className="flex items-center gap-1 sm:gap-3">
-              <LanguageSwitch />
+              <LanguageSwitch reduced={!hasMotion} />
               <button
                 onClick={toggleSound}
                 aria-pressed={sound}
@@ -351,7 +372,7 @@ export function TarotExperience() {
             >
               <ol
                 aria-label={t("Reading progress", "解读进度")}
-                className="flex flex-wrap items-center gap-3 sm:gap-5"
+                className="grid grid-cols-2 items-center gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:gap-5"
               >
                 {[
                   t("Intention", "意图"),
@@ -362,7 +383,7 @@ export function TarotExperience() {
                   <li
                     key={i}
                     aria-current={i === step ? "step" : undefined}
-                    className={`flex items-center gap-2 text-[10px] ${i === step ? "text-gold" : i < step ? "text-parchment/70" : "text-muted/60"}`}
+                    className={`flex items-center gap-2 text-sm ${i === step ? "text-gold" : i < step ? "text-parchment/70" : "text-muted/60"}`}
                   >
                     <span className="font-display text-base">
                       {i < step ? "✓" : `0${i + 1}`}
@@ -378,6 +399,7 @@ export function TarotExperience() {
                 ))}
               </ol>
               <Link
+                data-ritual-secondary
                 href="/cards/"
                 className={`${textButton} md:hidden`}
                 aria-label={t("Explore the deck", "探索塔罗牌库")}
@@ -392,7 +414,7 @@ export function TarotExperience() {
                   aria-label={t("Begin your reading", "开始你的解读")}
                 >
                   <div
-                    data-enter
+                    data-ritual-secondary
                     className="relative z-10 pt-4 text-center lg:pt-10 lg:text-left"
                   >
                     <p
@@ -427,9 +449,9 @@ export function TarotExperience() {
                       )}
                     </p>
                   </div>
-                  <div className="row-span-2 mx-auto -my-2 w-[min(100%,280px)] sm:w-[min(100%,360px)] lg:my-0 lg:w-full">
-                    <OracleArtwork reduced={!hasMotion} />
-                    <p className="-mt-1 hidden text-center text-[9px] tracking-[.25em] text-gold/65 lg:block">
+                  <div data-ritual-secondary className="row-span-2 mx-auto my-4 w-[min(100%,280px)] sm:w-[min(100%,360px)] lg:my-0 lg:w-full">
+                    <OracleArtwork reduced={!hasMotion || focused} />
+                    <p className="-mt-1 hidden text-center text-sm tracking-[.12em] text-gold/65 lg:block">
                       {t("AS ABOVE, SO WITHIN", "仰望星空，照见内心")}
                     </p>
                   </div>
@@ -443,12 +465,12 @@ export function TarotExperience() {
                   >
                     <label
                       htmlFor="intention"
-                      className="mb-3 flex justify-between text-xs text-parchment/90"
+                      className="mb-3 flex justify-between text-sm text-parchment/90"
                     >
                       <span>
                         {t("What’s on your mind?", "此刻，有什么心事？")}
                       </span>
-                      <span className="text-[10px] text-muted">
+                      <span className="text-sm text-muted">
                         {t("OPTIONAL", "可留空")}
                       </span>
                     </label>
@@ -468,17 +490,23 @@ export function TarotExperience() {
                           "A question. A feeling. Something on your mind.",
                           "一个问题，一种感受，一件心事。",
                         )}
-                        className="block min-h-24 w-full resize-y rounded-sm border border-gold/25 bg-ink/45 p-4 text-base leading-6 text-parchment sm:text-sm placeholder:text-muted/65 hover:border-gold/45 focus:border-gold/70 focus:outline-none focus:ring-1 focus:ring-gold/40"
+                        className="block min-h-24 w-full resize-y rounded-sm border border-gold/25 bg-ink/45 p-4 text-base leading-6 text-parchment placeholder:text-muted/65 hover:border-gold/45 focus:border-gold/70 focus:outline-none focus:ring-1 focus:ring-gold/40"
                       />
                     </div>
-                    <p className="mt-2.5 text-[10px] leading-5 text-muted">
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm leading-6 text-muted">
                       {t(
                         "You can leave this blank. Your words stay with you.",
                         "可以留空，你写下的话只保存在此设备上。",
                       )}
                     </p>
-                    <div className="my-5 flex items-center justify-between gap-2">
-                      <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-[11px] text-muted">
+                    {state.question && <button type="button" className={textButton} onClick={() => {
+                      dispatch({ type: "question", value: "" });
+                      document.getElementById("intention")?.focus();
+                    }}>{t("Clear question", "清空问题")}</button>}
+                    </div>
+                    <div className="my-5 flex flex-wrap items-center justify-between gap-3">
+                      <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-muted">
                         <input
                           className="size-4 accent-gold"
                           type="checkbox"
@@ -492,7 +520,7 @@ export function TarotExperience() {
                         />
                         <span>{t("Welcome reversed cards", "包含逆位牌")}</span>
                       </label>
-                      <span className="text-[10px] text-muted/70">
+                      <span className="text-sm text-muted/70">
                         {t("5 cards · Your own pace", "5 张牌 · 跟随你的节奏")}
                       </span>
                     </div>
@@ -501,7 +529,7 @@ export function TarotExperience() {
                       type="submit"
                       disabled={!ready}
                     >
-                      {t("Let the cards speak", "让牌开始诉说")}
+                      {t("Start shuffle", "开始洗牌")}
                       <Icon
                         name="arrow"
                         size={18}
@@ -510,7 +538,7 @@ export function TarotExperience() {
                     </button>
                   </form>
                 </section>
-                <div className="mt-14 flex flex-wrap items-center justify-center gap-x-9 gap-y-3 border-t border-line pt-6 text-[10px] tracking-wider text-muted lg:mt-20">
+                <div data-ritual-secondary className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 border-t border-line pt-6 text-sm tracking-wider text-muted lg:mt-16">
                   <span className="flex items-center gap-2">
                     <Icon name="cards" size={14} />
                     {t("78 original illustrations", "78 张经典插画")}
@@ -525,6 +553,25 @@ export function TarotExperience() {
                   </span>
                 </div>
               </>
+            )}
+            {stage === "shuffle" && (
+              <section aria-label={t("Shuffle your cards", "洗牌")} className="mx-auto max-w-xl py-6 text-center">
+                <div data-enter>
+                  <p className={eyebrow}>{t("A MOMENT FOR YOUR QUESTION", "给你的问题片刻时间")}</p>
+                  <h1 ref={title} tabIndex={-1} className="mt-4 font-display text-4xl outline-none sm:text-6xl">
+                    {t("Find your rhythm.", "跟随你的节奏。")}
+                  </h1>
+                </div>
+                <ShuffleDeck reduced={!hasMotion} reversals={state.reversals} />
+                {state.question.trim() && <blockquote className="mb-6 break-words font-display text-2xl italic text-parchment">“{state.question}”</blockquote>}
+                <p id="shuffle-instruction" className="mx-auto mb-6 max-w-md text-base leading-7 text-muted">
+                  {t("Repeat your questions a few times before stopping the shuffle.", "停止洗牌前，请在心中重复你的问题几次。")}
+                </p>
+                <button className={primary} onClick={stopShuffle} aria-describedby="shuffle-instruction">
+                  {t("Stop shuffle", "停止洗牌")}<Icon name="cards" size={18} />
+                </button>
+                <p role="status" className="mt-4 text-sm text-muted">{t("Shuffling · Stop whenever you feel ready", "正在洗牌 · 准备好后随时停止")}</p>
+              </section>
             )}
             {(stage === "gather" || stage === "choose") && (
               <section className="relative flex min-h-0 flex-1 flex-col" aria-label={t("Choose your cards", "选择你的牌")}>
@@ -553,7 +600,7 @@ export function TarotExperience() {
                       </>
                     )}
                   </h1>
-                  <p className="mt-1 hidden text-xs leading-5 text-muted min-[800px]:block [@media(max-height:600px)]:hidden">
+                  <p className="mt-1 hidden text-sm leading-5 text-muted min-[800px]:block [@media(max-height:600px)]:hidden">
                     {t(
                       "Let a card catch your eye. Make it part of your story.",
                       "让一张牌吸引你的目光，成为你故事的一部分。",
@@ -568,6 +615,11 @@ export function TarotExperience() {
                   onDealComplete={finishIntro}
                   onPick={pick}
                 />
+                {stage === "choose" && state.selected.length === 0 && (
+                  <div className="mt-3 text-center"><button className={textButton} onClick={begin}>
+                    {t("Shuffle again", "再次洗牌")}
+                  </button></div>
+                )}
                 {stage === "gather" && (
                   <div className="absolute inset-x-0 top-1/2 z-20 text-center">
                     <button className={`${textButton} rounded border border-line bg-ink/90 px-5`} onClick={skip}>
@@ -736,7 +788,8 @@ export function TarotExperience() {
                   {draws.map((item, i) => (
                     <div
                       key={item.id}
-                      className={`relative ${i % 2 ? "mt-5 sm:mt-10" : ""}`}
+                      data-spread-card
+                      className="relative min-w-0"
                     >
                       <img
                         src={getCard(item.id, locale).image}
@@ -745,7 +798,7 @@ export function TarotExperience() {
                         height="800"
                         className={`aspect-[3/5] w-full rounded-sm border border-gold/30 object-cover shadow-xl ${item.reversed ? "rotate-180" : ""}`}
                       />
-                      <span className="mt-3 block text-[9px] leading-4 text-muted sm:text-xs">
+                      <span className="mt-3 block text-sm leading-5 text-muted [overflow-wrap:anywhere]">
                         {positions[i].name}
                       </span>
                     </div>
@@ -772,7 +825,7 @@ export function TarotExperience() {
           <footer
             className={`${sectionWidth} flex shrink-0 items-center justify-between gap-x-5 gap-y-1 border-t border-line ${choosing ? "py-0 pb-[env(safe-area-inset-bottom)]" : "flex-wrap py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"}`}
           >
-            <span className={`${choosing ? "hidden sm:block" : ""} text-[9px] tracking-[.16em] text-muted/70`}>
+            <span data-ritual-secondary className={`${choosing ? "hidden sm:block" : ""} text-sm tracking-[.12em] text-muted/70`}>
               {t("A MOMENT TO PAUSE & REFLECT", "片刻停留，与自己对话")}
             </span>
             <div className="flex flex-wrap items-center gap-5">
@@ -784,14 +837,14 @@ export function TarotExperience() {
                   {t("Begin again", "重新开始")}
                 </button>
               )}
-              <OfflineStatus />
+              <div data-ritual-secondary><OfflineStatus /></div>
             </div>
           </footer>
         </>
       )}
       {notice && (
         <div
-          className="fixed bottom-5 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 items-center gap-3 rounded border border-gold/30 bg-panel p-4 text-xs leading-6 shadow-2xl"
+          className="fixed bottom-5 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 items-center gap-3 rounded border border-gold/30 bg-panel p-4 text-sm leading-6 shadow-2xl"
           role="status"
         >
           {notices[notice]}

@@ -78,3 +78,10 @@ test('reset removes the question and current reading while keeping the reversal 
   const state={...emptyReading,question:'A private question',reversals:false,deck:shuffleDeck(false,rng()),selected:[1]};
   assert.deepEqual(readingReducer(state,{type:'reset'}),{...emptyReading,reversals:false});
 });
+test('a committed selection prevents a second deck from replacing the reading',()=>{
+  const first=shuffleDeck(true,rng()),next=shuffleDeck(true,rng(543));
+  const ready=readingReducer(emptyReading,{type:'start',deck:first});
+  assert.deepEqual(readingReducer(ready,{type:'start',deck:next}).deck,next);
+  const selected=readingReducer(ready,{type:'select',index:3});
+  assert.equal(readingReducer(selected,{type:'start',deck:next}),selected);
+});

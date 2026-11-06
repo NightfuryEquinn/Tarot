@@ -1,5 +1,5 @@
 import type { ReadingState } from './reading';
-export type RitualStage = 'question' | 'gather' | 'choose' | 'reveal' | 'complete';
+export type RitualStage = 'question' | 'shuffle' | 'gather' | 'choose' | 'reveal' | 'complete';
 export function resumeRitual(reading: ReadingState): { stage: RitualStage; focus: number } {
   if (!reading.deck.length) return { stage: 'question', focus: 0 };
   if (reading.selected.length < 5) return { stage: 'choose', focus: 0 };

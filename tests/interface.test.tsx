@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import { PathnameContext } from "next/dist/shared/lib/hooks-client-context.shared-runtime.js";
 import { DealerTable } from "../src/components/DealerTable";
 import { RevealCard } from "../src/components/RevealCard";
+import { ShuffleDeck } from "../src/components/ShuffleDeck";
 import { TarotExperience } from "../src/components/TarotExperience";
 import { CardLibrary } from "../src/components/CardLibrary";
 import { LanguageProvider } from "../src/components/Language";
@@ -48,7 +49,10 @@ test("the entire five-card ritual works without WebGL and reset keeps its confir
   try {
     assert.match(document.querySelector("h1")!.textContent!, /your attention/);
     assert.equal(document.querySelectorAll("canvas").length, 0);
-    await click(button("Let the cards speak"));
+    await click(button("Start shuffle"));
+    assert.ok(button("Stop shuffle"));
+    assert.equal(document.querySelectorAll("[data-card-index]").length, 0);
+    await click(button("Stop shuffle"));
     assert.equal(document.querySelectorAll("[data-card-index]").length, 78);
     const first = document.querySelector<HTMLButtonElement>(
       '[data-card-index="0"]',
@@ -85,6 +89,8 @@ test("the entire five-card ritual works without WebGL and reset keeps its confir
       );
     }
     assert.match(document.querySelector("h1")!.textContent!, /Five stories/);
+    assert.equal(document.querySelector('[data-ritual-focused]')?.getAttribute('data-ritual-focused'), 'false');
+    assert.equal(document.querySelectorAll('[data-ritual-secondary][inert]').length, 0);
     const saved = JSON.parse(
       localStorage.getItem("midnight-arcana.reading.v1")!,
     );
@@ -127,12 +133,8 @@ test("restoring a partial reading and switching language preserves choices and q
   const unmount = await mount();
   try {
     assert.match(document.body.textContent!, /2 of 5 chosen/);
-    const select = document.querySelector("select")!;
-    await act(async () => {
-      select.value = "zh-CN";
-      select.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
-      await tick();
-    });
+    await click(document.querySelector('[role="combobox"]'));
+    await click([...document.querySelectorAll('[role="option"]')].find(option => option.textContent?.includes('简体中文'))!);
     assert.equal(document.documentElement.lang, "zh-CN");
     assert.match(document.body.textContent!, /已选择 2/);
     const restored = JSON.parse(
@@ -198,7 +200,8 @@ test("resizing the full-deck fan updates keyboard rows without changing the read
   history.replaceState(null, "", "/");
   const unmount = await mount();
   try {
-    await click(button("Let the cards speak"));
+    await click(button("Start shuffle"));
+    await click(button("Stop shuffle"));
     await click(document.querySelector('[data-card-index="3"]'));
     const saved = localStorage.getItem("midnight-arcana.reading.v1");
     const fans = document.querySelector("[data-card-fans]")!;
@@ -290,4 +293,142 @@ test("HTML deck arrival finishes and reducing motion snaps a card reveal to its 
   } finally {
     await act(() => root.unmount());
   }
+});
+
+async function typeQuestion(value: string) {
+  const input = document.querySelector<HTMLTextAreaElement>('#intention')!;
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, 'value')!.set!.call(input, value);
+    input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    await tick();
+  });
+}
+
+async function key(element: Element, value: string) {
+  await act(async () => {
+    element.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: value, bubbles: true }));
+    await tick();
+  });
+}
+
+test('question entry fades distractions, clear restores them, and shuffle waits for an explicit stop', async () => {
+  localStorage.clear(); history.replaceState(null, '', '/');
+  const unmount = await mount();
+  try {
+    await typeQuestion('What should I do about my career?');
+    assert.equal(document.querySelector('[data-ritual-focused]')?.getAttribute('data-ritual-focused'), 'true');
+    for (const element of document.querySelectorAll<HTMLElement>('[data-ritual-secondary]')) {
+      assert.ok(element.hasAttribute('inert'));
+      assert.equal(element.getAttribute('aria-hidden'), 'true');
+      assert.equal(element.style.opacity, '0');
+    }
+    assert.equal(document.querySelector('[role="combobox"]')?.closest('[inert]'), null);
+    await click(button('Clear question'));
+    assert.equal(document.querySelector<HTMLTextAreaElement>('#intention')!.value, '');
+    assert.equal(document.activeElement?.id, 'intention');
+    assert.equal(document.querySelectorAll('[data-ritual-secondary][inert]').length, 0);
+    await typeQuestion('How can I support my partner?');
+    await click(button('Start shuffle'));
+    assert.match(document.body.textContent!, /Repeat your questions a few times before stopping the shuffle\./);
+    assert.equal(document.querySelectorAll('[data-card-index]').length, 0);
+    assert.equal(JSON.parse(localStorage.getItem('midnight-arcana.reading.v1')!).deck.length, 0);
+    // Wait longer than the old automatic deal: reduced motion must not auto-stop.
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 2500)); });
+    assert.ok(button('Stop shuffle'));
+    const stop = button('Stop shuffle') as HTMLButtonElement;
+    await act(async () => { stop.click(); stop.click(); stop.click(); await tick(); });
+    const saved = JSON.parse(localStorage.getItem('midnight-arcana.reading.v1')!);
+    assert.equal(saved.deck.length, 78);
+    assert.equal(new Set(saved.deck.map((draw: { id: string }) => draw.id)).size, 78);
+    await click(button('Shuffle again'));
+    assert.deepEqual(JSON.parse(localStorage.getItem('midnight-arcana.reading.v1')!).deck, saved.deck);
+    await click(button('Stop shuffle'));
+    assert.equal(document.querySelectorAll('[data-card-index]').length, 78);
+    await click(document.querySelector('[data-card-index="3"]'));
+    assert.equal(button('Shuffle again'), null);
+    assert.equal(JSON.parse(localStorage.getItem('midnight-arcana.reading.v1')!).selected.length, 1);
+  } finally { await unmount(); }
+});
+
+test('reload during shuffle restores the last stable reading, without persisting an animated stage', async () => {
+  localStorage.clear(); history.replaceState(null, '', '/');
+  let unmount = await mount();
+  await typeQuestion('My studies');
+  await click(button('Start shuffle'));
+  await unmount();
+  unmount = await mount();
+  try {
+    assert.ok(button('Start shuffle'));
+    assert.equal(document.querySelector<HTMLTextAreaElement>('#intention')!.value, 'My studies');
+    await click(button('Start shuffle'));
+    await click(button('Stop shuffle'));
+    const saved = localStorage.getItem('midnight-arcana.reading.v1');
+    await click(button('Shuffle again'));
+    await unmount();
+    unmount = await mount();
+    assert.ok(button('Shuffle again'));
+    assert.equal(document.querySelectorAll('[data-card-index]').length, 78);
+    assert.equal(localStorage.getItem('midnight-arcana.reading.v1'), saved);
+  } finally { await unmount(); }
+});
+
+test('custom language dropdown supports keyboard selection, dismissal, and focus recovery', async () => {
+  localStorage.clear(); history.replaceState(null, '', '/');
+  const unmount = await mount();
+  try {
+    const trigger = document.querySelector<HTMLButtonElement>('[role="combobox"]')!;
+    assert.equal(document.querySelector('select'), null);
+    await key(trigger, 'ArrowDown');
+    assert.equal(trigger.getAttribute('aria-expanded'), 'true');
+    assert.equal(document.activeElement?.getAttribute('role'), 'option');
+    await key(document.activeElement!, 'End');
+    assert.match(document.activeElement!.textContent!, /简体中文/);
+    await key(document.activeElement!, 'Enter');
+    assert.equal(document.documentElement.lang, 'zh-CN');
+    assert.equal(localStorage.getItem('midnight-arcana.locale.v1'), 'zh-CN');
+    assert.equal(document.activeElement, trigger);
+    assert.equal(trigger.getAttribute('aria-expanded'), 'false');
+    await key(trigger, 'ArrowUp');
+    await key(document.activeElement!, 'Home');
+    await key(document.activeElement!, 'Escape');
+    assert.equal(document.documentElement.lang, 'zh-CN');
+    assert.equal(document.activeElement, trigger);
+    await click(trigger);
+    await act(async () => {
+      document.body.dispatchEvent(new dom.window.Event('pointerdown', { bubbles: true }));
+    });
+    assert.equal(document.querySelector('[role="listbox"]'), null);
+    await key(trigger, 'e');
+    await key(document.activeElement!, 'Enter');
+    assert.equal(document.documentElement.lang, 'en');
+    await click(trigger);
+    await key(document.activeElement!, 'Tab');
+    assert.equal(trigger.getAttribute('aria-expanded'), 'false');
+  } finally { await unmount(); }
+});
+
+test('shuffle animations can be paused, reduced, and unmounted; reversed reveals finish in the saved orientation', async () => {
+  container.replaceChildren();
+  const root = createRoot(container);
+  try {
+    await act(async () => {
+      root.render(<ShuffleDeck reduced={false} reversals={true} />);
+      await tick();
+    });
+    assert.equal(container.querySelectorAll('[data-shuffle-card]').length, 7);
+    for (const hidden of [true, false]) await act(async () => {
+      Object.defineProperty(document, 'hidden', { configurable: true, value: hidden });
+      document.dispatchEvent(new dom.window.Event('visibilitychange'));
+      await tick();
+    });
+    await act(async () => { root.render(<ShuffleDeck reduced={true} reversals={false} />); });
+    assert.ok([...container.querySelectorAll<HTMLElement>('[data-shuffle-turn]')].every(el => !el.style.transform));
+    for (const reversed of [true, false]) {
+      await act(async () => { root.render(<RevealCard key={String(reversed)} image="/cards/major-00.webp" reversed={reversed} revealed={false} reduced={false} skipVersion={0} />); });
+      await act(async () => { root.render(<RevealCard key={String(reversed)} image="/cards/major-00.webp" reversed={reversed} revealed={true} reduced={false} skipVersion={0} />); });
+      await act(async () => { root.render(<RevealCard key={String(reversed)} image="/cards/major-00.webp" reversed={reversed} revealed={true} reduced={true} skipVersion={1} />); });
+      assert.equal(container.querySelector<HTMLElement>('[data-card-orientation]')!.style.transform, `rotate(${reversed ? 180 : 0}deg)`);
+      assert.ok([...container.querySelectorAll<HTMLElement>('span')].some(el => el.style.transform === 'rotateY(180deg)'));
+    }
+  } finally { await act(() => root.unmount()); }
 });

@@ -176,7 +176,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
             <strong>{copy("Add to Home Screen")}</strong>.
           </p>
         )}
-        <p className="text-xs!">
+        <p className="text-sm!">
           {copy(
             "Your browser may remove saved data when storage is low or browsing data is cleared. Reopen online to download it again.",
           )}
@@ -197,7 +197,7 @@ export function OfflineStatus() {
   const { status, offline, installed, act } = context;
   return (
     <button
-      className="inline-flex min-h-11 items-center justify-center gap-2 text-[10px] text-muted hover:text-gold"
+      className="inline-flex min-h-11 items-center justify-center gap-2 text-sm text-muted hover:text-gold"
       onClick={act}
       title={
         installed

@@ -83,7 +83,7 @@ export function CardLibrary() {
       >
         <div
           className={
-            "flex flex-wrap gap-1.5 [&_button]:flex [&_button]:min-h-11 [&_button]:items-center [&_button]:gap-2 [&_button]:rounded-sm [&_button]:px-3 [&_button]:text-[11px] [&_button]:transition-colors [&_span]:text-[9px] [&_span]:text-gold/60"
+            "flex flex-wrap gap-1.5 [&_button]:flex [&_button]:min-h-11 [&_button]:items-center [&_button]:gap-2 [&_button]:rounded-sm [&_button]:px-3 [&_button]:text-sm [&_button]:transition-colors [&_span]:text-sm [&_span]:text-gold/60"
           }
           role="group"
           aria-label={copy("Filter cards by arcana or suit")}
@@ -115,7 +115,7 @@ export function CardLibrary() {
         </div>
         <label
           className={
-            "flex min-h-12 items-center gap-3 rounded-sm border border-line bg-ink/70 px-4 text-muted focus-within:border-gold/60 [&>input]:min-w-0 [&>input]:flex-1 [&>input]:bg-transparent [&>input]:py-3 [&>input]:text-base sm:[&>input]:text-xs [&>input]:outline-none xl:w-72"
+            "flex min-h-12 items-center gap-3 rounded-sm border border-line bg-ink/70 px-4 text-muted focus-within:border-gold/60 [&>input]:min-w-0 [&>input]:flex-1 [&>input]:bg-transparent [&>input]:py-3 [&>input]:text-base sm:[&>input]:text-sm [&>input]:outline-none xl:w-72"
           }
         >
           <Icon name="search" size={18} />
@@ -132,7 +132,7 @@ export function CardLibrary() {
       </div>
       <div
         className={
-          "my-7 flex flex-wrap justify-between gap-3 text-[9px] tracking-[.16em] text-muted"
+          "my-7 flex flex-wrap justify-between gap-3 text-sm tracking-[.16em] text-muted"
         }
       >
         <span aria-live="polite">
@@ -151,7 +151,7 @@ export function CardLibrary() {
         {filtered.map((c) => (
           <button
             className={
-              "group min-w-0 text-left [&>h2]:mt-2 [&>h2]:font-display [&>h2]:text-2xl [&>h2]:leading-tight [&>p]:mt-2 [&>p]:text-[10px] [&>p]:leading-5 [&>p]:text-muted"
+              "group min-w-0 text-left [&>h2]:mt-2 [&>h2]:font-display [&>h2]:text-2xl [&>h2]:leading-tight [&>p]:mt-2 [&>p]:text-sm [&>p]:leading-5 [&>p]:text-muted"
             }
             key={c.id}
             onClick={() => open(c)}
@@ -170,14 +170,14 @@ export function CardLibrary() {
               />
               <span
                 className={
-                  "absolute inset-x-1.5 bottom-1.5 flex min-h-11 items-center justify-center gap-2 bg-ink/95 py-2 text-[10px] text-gold opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+                  "absolute inset-x-1.5 bottom-1.5 flex min-h-11 items-center justify-center gap-2 bg-ink/95 py-2 text-sm text-gold opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
                 }
               >
                 <Icon name="book" size={20} /> {copy("Explore meaning")}
               </span>
             </div>
             <span
-              className={"mt-4 block text-[8px] tracking-[.16em] text-gold/80"}
+              className={"mt-4 block text-sm tracking-[.16em] text-gold/80"}
             >
               {c.arcana === "major"
                 ? copy("MAJOR ARCANA")
@@ -228,7 +228,7 @@ export function CardLibrary() {
           </p>
           <div
             className={
-              "mt-5 flex flex-wrap gap-x-7 gap-y-2 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center [&>a]:gap-2 [&>a]:text-xs [&>a]:text-gold hover:[&>a]:underline"
+              "mt-5 flex flex-wrap gap-x-7 gap-y-2 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center [&>a]:gap-2 [&>a]:text-sm [&>a]:text-gold hover:[&>a]:underline"
             }
           >
             <a
@@ -295,7 +295,7 @@ export function CardLibrary() {
               <h2 id="card-details-title">{card.name}</h2>
               <div
                 className={
-                  "my-5 flex gap-2 [&>button]:min-h-11 [&>button]:rounded-sm [&>button]:border [&>button]:px-5 [&>button]:text-xs"
+                  "my-5 flex gap-2 [&>button]:min-h-11 [&>button]:rounded-sm [&>button]:border [&>button]:px-5 [&>button]:text-sm"
                 }
                 role="group"
                 aria-label={copy("Card orientation")}
@@ -338,7 +338,7 @@ export function CardLibrary() {
               </div>
               <div
                 className={
-                  "border-t border-line pt-5 [&>p]:my-3 [&>p]:text-sm [&>p]:text-muted [&>small]:text-xs [&>small]:leading-6 [&>small]:text-muted"
+                  "border-t border-line pt-5 [&>p]:my-3 [&>p]:text-sm [&>p]:text-muted [&>small]:text-sm [&>small]:leading-6 [&>small]:text-muted"
                 }
               >
                 <span className={eyebrow}>{copy("THREADS TO LOOK FOR")}</span>

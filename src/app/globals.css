@@ -31,6 +31,8 @@
   --color-line: #d8b88626;
   --font-sans: "Manrope", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-display: "Cormorant Garamond", "Songti SC", "SimSun", serif;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
 }
 
 @layer base {
@@ -38,7 +40,7 @@
     color-scheme: dark;
   }
   body {
-    @apply m-0 bg-ink font-sans text-parchment antialiased;
+    @apply m-0 bg-ink font-sans text-base text-parchment antialiased;
   }
   button,
   a,

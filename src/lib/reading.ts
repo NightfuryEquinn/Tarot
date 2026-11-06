@@ -1,5 +1,6 @@
 import { getCard, local, themeName, type Locale } from './locale';
 import { cards, type TarotCard, type Meaning } from '../data/cards';
+import { topicContext } from './topics';
 
 export type DrawnCard = { id: string; reversed: boolean };
 export type ReadingState = {
@@ -58,7 +59,7 @@ export function readingReducer(state: ReadingState, action: ReadingAction): Read
     case 'restore': return action.state;
     case 'question': return state.deck.length ? state : { ...state, question: action.value.slice(0, 300) };
     case 'reversals': return state.deck.length ? state : { ...state, reversals: action.value };
-    case 'start': return { ...state, deck: action.deck, selected: [], revealed: [] };
+    case 'start': return state.selected.length ? state : { ...state, deck: action.deck, selected: [], revealed: [] };
     case 'select':
       if (state.selected.length >= 5 || !Number.isInteger(action.index) || !state.deck[action.index] || state.selected.includes(action.index)) return state;
       return { ...state, selected: [...state.selected, action.index] };
@@ -80,7 +81,8 @@ export function restoreReading(raw: string | null): ReadingState | null {
   } catch { return null; }
 }
 
-export type Connection = { ids: [string, string]; title: string; text: string; kind: 'bridge' | 'resonance' | 'tension' | 'position'; score: number };
+type ConnectionKind = 'bridge' | 'resonance' | 'tension' | 'position';
+export type Connection = { ids: [string, string]; title: string; text: string; kind: ConnectionKind; relations: ConnectionKind[]; score: number };
 const contrasts: [string, string, string][] = [
   ['action', 'patience', 'Movement needs room to mature. Consider where a small step would help and where waiting would protect your energy.'],
   ['connection', 'independence', 'Closeness and autonomy both deserve space. A clear boundary can make connection more sustainable.'],
@@ -92,6 +94,7 @@ const contrasts: [string, string, string][] = [
 const titleCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 const cardLabel = (draw: DrawnCard, locale:Locale='en') => `${getCard(draw.id,locale).name}${draw.reversed ? local(locale,' reversed','（逆位）') : ''}`;
 export function connectReading(draws: DrawnCard[], locale:Locale='en'): Connection[] {
+  if (draws.length !== 5) return [];
   const positions=getPositions(locale);
   const label=(draw:DrawnCard)=>cardLabel(draw,locale);
   const domain=(suit:string)=>locale==='en'?suitDomains[suit]:chineseSuitDomains[suit];
@@ -108,6 +111,7 @@ export function connectReading(draws: DrawnCard[], locale:Locale='en'): Connecti
       `${label(a)} brings ${ma.keywords[0].toLowerCase()} to your ${positions[i].label.toLowerCase()}, while ${label(b)} brings ${mb.keywords[0].toLowerCase()} to your ${positions[j].label.toLowerCase()}. Read the second as a response to the first: ${mb.advice}`,
       `${label(a)}为「${positions[i].label}」带来${ma.keywords[0]}，${label(b)}则以${mb.keywords[0]}回应「${positions[j].label}」。把后者视为对前者的回应：${mb.advice}`);
     let kind: Connection['kind'] = 'position';
+    const relations: ConnectionKind[] = [];
     let score = 1;
     if (shared.length) {
       title = local(locale,`${titleCase(shared[0])}, seen twice`,`${themeName(shared[0],locale)}，在两张牌中呼应`);
@@ -115,12 +119,18 @@ export function connectReading(draws: DrawnCard[], locale:Locale='en'): Connecti
         `${label(a)} and ${label(b)} share a theme of ${shared[0]}. In the ${positions[i].label.toLowerCase()} position, it appears as ${ma.keywords[0].toLowerCase()}; in the ${positions[j].label.toLowerCase()} position, it takes the form of ${mb.keywords[0].toLowerCase()}. ${mb.advice}`,
         `${label(a)}与${label(b)}共同指向「${themeName(shared[0],locale)}」。在「${positions[i].label}」中，它表现为${ma.keywords[0]}；在「${positions[j].label}」中，它呈现为${mb.keywords[0]}。${mb.advice}`);
       kind = 'resonance'; score += 5 + shared.length;
-    } else if (tension) {
-      title = local(locale,`${titleCase(tension[0])} & ${tension[1]}`,`${themeName(tension[0],locale)}与${themeName(tension[1],locale)}`);
-      text = local(locale,
-        `${label(a)} (${ma.keywords[0].toLowerCase()}) and ${label(b)} (${mb.keywords[0].toLowerCase()}) pull in different directions. ${tension[2]}`,
-        `${label(a)}的${ma.keywords[0]}，与${label(b)}的${mb.keywords[0]}，指向不同的需要。${chineseContrasts[contrasts.indexOf(tension)]}`);
+      relations.push('resonance');
+    }
+    if (tension) {
+      if (!shared.length) title = local(locale,`${titleCase(tension[0])} & ${tension[1]}`,`${themeName(tension[0],locale)}与${themeName(tension[1],locale)}`);
+      const aTheme = ma.themes.includes(tension[0]) && mb.themes.includes(tension[1]) ? tension[0] : tension[1];
+      const bTheme = aTheme === tension[0] ? tension[1] : tension[0];
+      const tensionText = local(locale,
+        `${label(a)} emphasizes ${aTheme} in the ${positions[i].label.toLowerCase()} position, while ${label(b)} emphasizes ${bTheme} in the ${positions[j].label.toLowerCase()} position. ${tension[2]}`,
+        `${label(a)}在「${positions[i].label}」中强调${themeName(aTheme,locale)}，而${label(b)}在「${positions[j].label}」中强调${themeName(bTheme,locale)}，提示不同的需要。${chineseContrasts[contrasts.indexOf(tension)]}`);
+      text = shared.length ? `${text} ${tensionText}` : tensionText;
       kind = 'tension'; score += 5;
+      relations.push('tension');
     }
     if (sameSuit) { score += 2; text += local(locale,` Their shared suit of ${titleCase(ca.suit!)} places this exchange in ${domain(ca.suit!)}.`,` 两张牌同属一个牌组，让这份对话落在${domain(ca.suit!)}之中。`); }
     if (ca.arcana === 'minor' && cb.arcana === 'minor' && ca.number === cb.number) { score += 2; text += local(locale,' Their matching ranks echo a similar stage of development across different areas of life.',' 相同的牌阶也提示：生活的不同领域，可能正经历相似的发展阶段。'); }
@@ -131,14 +141,24 @@ export function connectReading(draws: DrawnCard[], locale:Locale='en'): Connecti
         ` ${label(major)} supplies the larger lesson of ${majorMeaning.keywords[0].toLowerCase()}; ${label(minor)} makes it tangible through ${minorMeaning.keywords[0].toLowerCase()} in ${domain(minorCard.suit!)}.`,
         ` 大阿尔卡那的${label(major)}提出关于${majorMeaning.keywords[0]}的整体课题；小阿尔卡那的${label(minor)}则通过${minorMeaning.keywords[0]}，将它落实到${domain(minorCard.suit!)}。`);
       kind = 'bridge'; score += 3;
+      relations.push('bridge');
       if (!shared.length && !tension) title = local(locale,'The larger lesson, made personal','让整体课题走进日常');
     }
-    candidates.push({ ids: [a.id,b.id], title, text, kind, score });
+    candidates.push({ ids: [a.id,b.id], title, text, kind, relations: relations.length ? relations : ['position'], score });
   }
   candidates.sort((a,b) => b.score - a.score);
   const bridge = candidates.find(c => c.kind === 'bridge');
   const result: Connection[] = bridge ? [bridge] : [];
-  for (const c of candidates) { if (result.length >= 3) break; if (!result.includes(c)) result.push(c); }
+  while (result.length < 3) {
+    const usedIds = new Set(result.flatMap(c => c.ids));
+    const usedRelations = new Set(result.flatMap(c => c.relations));
+    const value = (c: Connection) => c.score
+      + c.ids.filter(id => !usedIds.has(id)).length * 8
+      + c.relations.filter(relation => !usedRelations.has(relation)).length * 4;
+    const next = candidates.filter(c => !result.includes(c)).sort((a,b) => value(b) - value(a))[0];
+    if (!next) break;
+    result.push(next);
+  }
   return result;
 }
 export const suitDomains: Record<string,string> = { wands: 'creative energy and purposeful action', cups: 'feelings and relationships', swords: 'thoughts, decisions, and communication', pentacles: 'work, resources, and everyday care' };
@@ -156,6 +176,49 @@ export function summarizeReading(draws: DrawnCard[], locale:Locale='en'): string
   const majorCount = draws.filter(d => cardById.get(d.id)!.arcana === 'major').length;
   const opening = majorCount >= 3 ? local(locale,'Several Major Arcana cards give this reading the shape of a larger transition.','多张大阿尔卡那牌，为这次解读勾勒出一个较大的人生转变。') : majorCount === 0 ? local(locale,'This reading speaks through everyday choices, relationships, and habits.','这次解读聚焦于日常的选择、关系与习惯。') : local(locale,'A larger life theme is unfolding through practical, everyday experiences.','一个较大的人生主题，正在日常的具体经历中展开。');
   return local(locale,
-    `${opening} ${cardLabel(draws[0],locale)} puts ${meaningFor(draws[0],locale).keywords[0].toLowerCase()} at the center. Your guidance, ${cardLabel(draws[3],locale)}, suggests: ${meaningFor(draws[3],locale).advice} ${cardLabel(draws[4],locale)} offers ${meaningFor(draws[4],locale).keywords[0].toLowerCase()} as a possibility to reflect on, rather than a fixed destination.`,
-    `${opening}${cardLabel(draws[0],locale)}将${meaningFor(draws[0],locale).keywords[0]}放在当下的中心。作为指引，${cardLabel(draws[3],locale)}建议：${meaningFor(draws[3],locale).advice}${cardLabel(draws[4],locale)}带来的${meaningFor(draws[4],locale).keywords[0]}，是值得思考的一种可能，而非注定的终点。`);
+    `${opening} ${cardLabel(draws[0],locale)} puts ${meaningFor(draws[0],locale).keywords[0].toLowerCase()} at the center. The challenge, ${cardLabel(draws[1],locale)}, asks how you handle ${meaningFor(draws[1],locale).keywords[0].toLowerCase()}. Underneath, ${cardLabel(draws[2],locale)} points to ${meaningFor(draws[2],locale).keywords[0].toLowerCase()} as an influence worth examining. Your guidance, ${cardLabel(draws[3],locale)}, suggests: ${meaningFor(draws[3],locale).advice} In light of this guidance, ${cardLabel(draws[4],locale)} offers ${meaningFor(draws[4],locale).keywords[0].toLowerCase()} as a possible direction, not a fixed destination.`,
+    `${opening}${cardLabel(draws[0],locale)}将${meaningFor(draws[0],locale).keywords[0]}放在当下的中心。作为挑战，${cardLabel(draws[1],locale)}邀请你审视如何应对${meaningFor(draws[1],locale).keywords[0]}。在深层，${cardLabel(draws[2],locale)}提示你留意${meaningFor(draws[2],locale).keywords[0]}的影响。作为指引，${cardLabel(draws[3],locale)}建议：${meaningFor(draws[3],locale).advice}结合这份指引，${cardLabel(draws[4],locale)}带来的${meaningFor(draws[4],locale).keywords[0]}，是值得思考的一种可能，而非注定的终点。`);
+}
+
+export function interpretPosition(draw: DrawnCard, index: number, locale: Locale = 'en') {
+  const meaning = meaningFor(draw, locale);
+  const keyword = meaning.keywords[0];
+  const explanations = [
+    local(locale, `In the present position, ${keyword.toLowerCase()} describes a pattern to notice in your current experience. Look for a concrete example before deciding how well it fits.`, `在当下的位置，「${keyword}」描述了值得留意的现状模式。先寻找一个具体例子，再判断它是否贴合你的经历。`),
+    local(locale, `As a challenge, ${keyword.toLowerCase()} may be hard to access, overused, or asking for a different response. This position describes something to work with, rather than labeling the card as bad.`, `作为挑战，「${keyword}」可能难以发挥、被过度使用，或需要不同的回应。这个位置描述的是需要处理的课题，并不代表这张牌不好。`),
+    local(locale, `As an underlying influence, ${keyword.toLowerCase()} invites you to examine a habit, assumption, or unmet need beneath the visible situation. Check it against your own experience.`, `作为潜在影响，「${keyword}」邀请你审视现象背后的习惯、假设或未被照顾的需要，并用自己的经历来核对。`),
+    local(locale, `In the advice position, ${keyword.toLowerCase()} highlights what your next response needs to address. Use this card’s practical guidance as a small experiment, adjusting it to what is within your control.`, `在建议的位置，「${keyword}」提示下一步回应需要关注什么。把这张牌的实际建议当作一个小实验，按自己能够掌握的范围调整。`),
+    local(locale, `As a possible outcome, ${keyword.toLowerCase()} is a direction to explore alongside the guidance card. Your choices and changing circumstances can reshape it.`, `作为可能的发展，「${keyword}」是可以结合指引牌来探索的方向。你的选择与环境变化，都可能改变它。`),
+  ];
+  if (!explanations[index]) throw new Error('Unknown spread position');
+  return {
+    draw,
+    position: getPositions(locale)[index],
+    meaning,
+    explanation: explanations[index],
+    orientation: draw.reversed
+      ? local(locale, 'Read through this card’s reversed meaning: its energy may be inward, blocked, excessive, or in the process of release. Its specific meaning matters more than a blanket negative interpretation.', '按这张牌的逆位含义来理解：能量可能转向内在、受阻、过度，或正在释放。它的具体含义比一概负面的判断更重要。')
+      : local(locale, 'Read through this card’s upright meaning, then use its position to understand the role it plays in this spread.', '先理解这张牌的正位含义，再结合它在牌阵中的位置，理解它扮演的角色。'),
+  };
+}
+
+export function buildReading(draws: DrawnCard[], question = '', locale: Locale = 'en') {
+  if (draws.length !== 5) throw new Error('A reading requires five cards');
+  const context = topicContext(question, locale);
+  return {
+    context,
+    summary: `${summarizeReading(draws, locale)} ${context.lens}`,
+    cards: draws.map((draw, index) => {
+      const card = interpretPosition(draw, index, locale);
+      return {
+        ...card,
+        application: local(locale,
+          `Through the lens of ${context.name.toLowerCase()}, consider ${card.meaning.keywords[0].toLowerCase()}: ${card.position.prompt} ${context.lens}`,
+          `从「${context.name}」的视角思考「${card.meaning.keywords[0]}」：${card.position.prompt}${context.lens}`),
+      };
+    }),
+    connections: connectReading(draws, locale),
+    nextStep: meaningFor(draws[3], locale).advice,
+    reflection: `${getCard(draws[3].id, locale).name} · ${meaningFor(draws[3], locale).keywords.join(' / ')}: ${context.prompt}`,
+  };
 }

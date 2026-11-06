@@ -18,9 +18,9 @@ export function Brand() {
         <Icon name="star" size={23} />
         <span className="absolute inset-1 rounded-full border border-gold/10" />
       </span>
-      <span className="text-[10px] font-medium tracking-[.25em] sm:text-[11px]">
+      <span className="hidden text-sm font-medium tracking-[.12em] sm:block">
         MIDNIGHT
-        <span className="mt-1 block text-[9px] tracking-[.47em] text-parchment/70">
+        <span className="mt-1 block text-sm tracking-[.25em] text-parchment/70">
           ARCANA
         </span>
       </span>
@@ -45,7 +45,7 @@ export function Header() {
           </Link>
           <Link className={textButton} href="/cards/">
             {copy("The deck")}
-            <span className="text-[9px] text-gold">78</span>
+            <span className="text-sm text-gold">78</span>
           </Link>
         </nav>
         <LanguageSwitch />
@@ -57,7 +57,7 @@ export function Footer() {
   const { copy } = useLanguage();
   return (
     <footer
-      className={`${sectionWidth} mt-16 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-line py-8 text-xs text-muted`}
+      className={`${sectionWidth} mt-16 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-line py-8 text-sm text-muted`}
     >
       <p>{copy("A little ritual. A little room to reflect.")}</p>
       <Link href="/cards/#credits" className={textButton}>
