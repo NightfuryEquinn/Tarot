@@ -29,6 +29,7 @@ export default function CardScene(props: Props) {
     const project = getProject('Midnight Arcana Ritual', { state: animationState });
     const key = String(++instance);
     const fan = project.sheet('Fan', key);
+    const sheets = [fan];
     const motion = fan.object('Motion', { spread: types.number(0), shuffle: types.number(0), camera: types.number(0) });
     let live = true, frame = 0, hover = -1;
     const textures: THREE.Texture[] = [];
@@ -70,6 +71,7 @@ export default function CardScene(props: Props) {
         if (isSelected && !node.wasSelected) {
           node.wasSelected=true;
           const sheet=project.sheet('Select',`${key}-${index}`);
+          sheets.push(sheet);
           const object=sheet.object('Motion',{progress:types.number(0)});
           cleanups.push(object.onValuesChange(v=>{node.selected=v.progress;requestRender();}));
           playing.add(sheet); sheet.sequence.position=0; void sheet.sequence.play().then(()=>playing.delete(sheet));
@@ -77,6 +79,7 @@ export default function CardScene(props: Props) {
         if (isRevealed && !node.wasRevealed) {
           node.wasRevealed=true;
           const sheet=project.sheet('Reveal',`${key}-${index}`);
+          sheets.push(sheet);
           const object=sheet.object('Motion',{progress:types.number(0)});
           cleanups.push(object.onValuesChange(v=>{node.reveal=v.progress;requestRender();}));
           playing.add(sheet); sheet.sequence.position=0; void sheet.sequence.play().then(()=>playing.delete(sheet));
@@ -153,10 +156,12 @@ export default function CardScene(props: Props) {
     return ()=>{
       live=false;synchronize.current=()=>{};cancelAnimationFrame(frame);resize.disconnect();
       playing.forEach(s=>s.sequence.pause());cleanups.forEach(fn=>fn());
+      // ponytail: Theatre 0.7 can't remove a sheet, only its objects; empty sheet shells remain per reading.
+      sheets.forEach(s=>s.detachObject('Motion'));
       nodes.forEach(node=>node.frontMaterial.dispose()); textures.forEach(texture=>texture.dispose());cardGeometry.dispose();edgeGeometry.dispose();backMaterial.dispose();edgeMaterial.dispose();
       document.removeEventListener('visibilitychange',visibility);
       renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointermove',move);renderer.domElement.removeEventListener('pointerup',click);renderer.domElement.removeEventListener('pointerleave',leave);renderer.domElement.removeEventListener('webglcontextlost',lost);
-      renderer.dispose();renderer.domElement.remove();
+      renderer.forceContextLoss();renderer.dispose();renderer.domElement.remove();
     };
   }, [props.deck]);
   return <div className="card-scene" ref={host} aria-hidden="true" />;
