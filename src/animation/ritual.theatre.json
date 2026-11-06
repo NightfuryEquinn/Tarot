@@ -269,6 +269,254 @@
           }
         }
       }
+    },
+    "Arrival": {
+      "staticOverrides": {
+        "byObject": {}
+      },
+      "sequence": {
+        "type": "PositionalSequence",
+        "length": 1.9,
+        "subUnitsPerUnit": 60,
+        "tracksByObject": {
+          "Motion": {
+            "trackIdByPropPath": {
+              "[\"gather\"]": "track-gather",
+              "[\"camera\"]": "track-camera",
+              "[\"vignette\"]": "track-vignette"
+            },
+            "trackData": {
+              "track-gather": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "gather-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "gather-1",
+                    "position": 0.9,
+                    "value": 1,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "gather-2",
+                    "position": 1.9,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              },
+              "track-camera": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "camera-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "camera-1",
+                    "position": 0.9,
+                    "value": 1,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "camera-2",
+                    "position": 1.9,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              },
+              "track-vignette": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "vignette-0",
+                    "position": 0,
+                    "value": 0.16,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "vignette-1",
+                    "position": 0.9,
+                    "value": 0.23,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "vignette-2",
+                    "position": 1.9,
+                    "value": 0.18,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "Finale": {
+      "staticOverrides": {
+        "byObject": {}
+      },
+      "sequence": {
+        "type": "PositionalSequence",
+        "length": 1.2,
+        "subUnitsPerUnit": 60,
+        "tracksByObject": {
+          "Motion": {
+            "trackIdByPropPath": {
+              "[\"progress\"]": "track-progress",
+              "[\"glow\"]": "track-glow"
+            },
+            "trackData": {
+              "track-progress": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "progress-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "progress-1",
+                    "position": 1.2,
+                    "value": 1,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              },
+              "track-glow": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "glow-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "glow-1",
+                    "position": 0.5,
+                    "value": 1,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "glow-2",
+                    "position": 1.2,
+                    "value": 0.2,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

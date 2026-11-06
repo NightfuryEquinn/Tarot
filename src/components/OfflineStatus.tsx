@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from './Icon';
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
-export function OfflineStatus() {
+const OfflineContext=createContext<{status:string;offline:boolean;installed:boolean;act:()=>Promise<void>}|null>(null);
+export function OfflineProvider({children}:{children:ReactNode}) {
   const [status, setStatus] = useState('Preparing offline');
   const [offline, setOffline] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration>();
@@ -19,6 +20,8 @@ export function OfflineStatus() {
     }
   };
   useEffect(() => {
+    let cancelled=false;
+    let cleanupRegistration=()=>{};
     setOffline(!navigator.onLine);
     setInstalled(window.matchMedia('(display-mode: standalone)').matches);
     const online = () => setOffline(!navigator.onLine);
@@ -28,6 +31,7 @@ export function OfflineStatus() {
     window.addEventListener('beforeinstallprompt', install); window.addEventListener('appinstalled', installedHandler);
     if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).then(reg => {
+        if(cancelled)return;
         setRegistration(reg); void refreshStatus(reg);
         const observe = () => {
           const worker = reg.installing;
@@ -39,10 +43,12 @@ export function OfflineStatus() {
           });
         };
         observe(); reg.addEventListener('updatefound', observe);
+        cleanupRegistration=()=>reg.removeEventListener('updatefound',observe);
         navigator.serviceWorker.ready.then(ready => void refreshStatus(ready));
       }).catch(() => setStatus('Offline download incomplete'));
     } else setStatus(process.env.NODE_ENV === 'production' ? 'Offline unavailable' : 'Preview mode');
     return () => {
+      cancelled=true;cleanupRegistration();
       window.removeEventListener('online', online); window.removeEventListener('offline', online);
       window.removeEventListener('beforeinstallprompt', install); window.removeEventListener('appinstalled', installedHandler);
     };
@@ -68,12 +74,8 @@ export function OfflineStatus() {
       await prompt.prompt(); await prompt.userChoice; setPrompt(undefined);
     } else help.current?.showModal();
   };
-  return <>
-    <button className="offline-status" onClick={act} title={installed ? 'Offline app information' : 'Install app or view offline status'}>
-      <span className={`status-dot ${status === 'Ready offline' ? 'ready' : ''}`} />
-      <span>{offline ? (status === 'Ready offline' ? 'You’re offline · ready' : 'You’re offline') : status}</span>
-      <Icon name={status === 'Update available' ? 'download' : 'chevron'} size={13} />
-    </button>
+  return <OfflineContext.Provider value={{status,offline,installed,act}}>
+    {children}
     <dialog ref={help} className="info-dialog" aria-labelledby="install-info-title">
       <button className="icon-button dialog-close" aria-label="Close installation information" onClick={() => help.current?.close()}><Icon name="close" /></button>
       <Icon name="moon" size={34} /><h2 id="install-info-title">A little space, always with you.</h2>
@@ -82,5 +84,18 @@ export function OfflineStatus() {
       <p className="muted small">Your browser may remove saved data when storage is low or browsing data is cleared. Reopen online to download it again.</p>
       <button className="button secondary" onClick={() => help.current?.close()}>Got it <Icon name="check" size={16} /></button>
     </dialog>
-  </>;
+  </OfflineContext.Provider>;
+}
+
+export function OfflineStatus(){
+  const context=useContext(OfflineContext);
+  if(!context)return null;
+  const {status,offline,installed,act}=context;
+  return (
+    <button className="offline-status" onClick={act} title={installed ? 'Offline app information' : 'Install app or view offline status'}>
+      <span className={`status-dot ${status === 'Ready offline' ? 'ready' : ''}`} />
+      <span>{offline ? (status === 'Ready offline' ? 'You’re offline · ready' : 'You’re offline') : status}</span>
+      <Icon name={status === 'Update available' ? 'download' : 'chevron'} size={13} />
+    </button>
+  );
 }
