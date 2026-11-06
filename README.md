@@ -6,7 +6,7 @@ A five-card tarot ritual built with **Next.js, TypeScript, Anime.js, Three.js, a
 
 - A full-screen celestial opening: one optional question, a single overview of all 78 cards, five choices, individual reveals, and a final constellation. The interpretations and deck library follow the ritual.
 - Choose five cards for **present situation, challenge, underlying influence, advice, and possible outcome**.
-- Animated 3D shuffle, fan, selection, and reveals; a complete HTML interface supports touch, keyboard navigation, reduced motion, and WebGL failures.
+- A continuous magical dealer shuffle, layered fans, enlarged face-down previews, confirmed selections, and 3D reveals; a complete HTML interface supports touch, keyboard navigation, reduced motion, and WebGL failures.
 - All 78 Rider–Waite–Smith cards with original upright/reversed interpretations, advice, and shared thematic tags.
 - Connected readings explain shared themes, tensions, suits, ranks, and Major-to-Minor relationships using local authored rules.
 - Searchable card library with orientation controls and per-card provenance.
@@ -55,4 +55,8 @@ Automated tests cover dataset completeness, local images, unique draws, reversal
 
 Browser checks still required for a release: desktop/mobile rendering, actual WebGL interactions and context loss, keyboard/screen-reader behavior, reduced motion, install prompts, and a complete offline reload. The implementation environment did not expose the supported browser QA runtime; automated tests do not replace those browser checks.
 
-The deck overview uses 13 columns on larger screens and 8 on phones, with no pagination. Card placement and scale are damped using elapsed frame time, departing cards fade out, and the fifth selection settles before the reveal stage. Layout measurements are refreshed on state, viewport, or scroll changes rather than on every frame.
+The dealer table shows all 78 cards in three curved rows on desktop, six on phones, or seven on very narrow screens. Hover, focus, or tap previews a face-down card; “Choose this card” confirms it into a five-slot tray. Arrow keys move between cards; Tab reaches the confirmation button, and Escape clears the preview. The 3.2-second Theatre dealer sequence gathers, cuts, interleaves, squares, and spreads the same meshes. Completion callbacks unlock selection and advance after the fifth card settles. Reduced motion and WebGL fallback use the same HTML controls without waiting for scene animation.
+
+## Languages
+
+English and Simplified Chinese are bundled locally, including all 78 names, 156 interpretations with advice, reading connections, library search, and offline/install UI. The English / 简体中文 selector persists in `midnight-arcana.locale.v1`; first use follows the browser language, falling back to English. Switching language preserves the existing `midnight-arcana.reading.v1` reading and never changes shuffle order, orientations, or relationship scoring. Original artwork lettering is preserved. Chinese uses installed system fonts, so it needs no external font request. Both languages are included in the static PWA cache.
