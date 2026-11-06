@@ -1,0 +1,274 @@
+{
+  "definitionVersion": "0.4.0",
+  "revisionHistory": [
+    "midnight-arcana-v1"
+  ],
+  "sheetsById": {
+    "Fan": {
+      "staticOverrides": {
+        "byObject": {}
+      },
+      "sequence": {
+        "type": "PositionalSequence",
+        "length": 2.3,
+        "subUnitsPerUnit": 60,
+        "tracksByObject": {
+          "Motion": {
+            "trackIdByPropPath": {
+              "[\"spread\"]": "track-spread",
+              "[\"shuffle\"]": "track-shuffle",
+              "[\"camera\"]": "track-camera"
+            },
+            "trackData": {
+              "track-spread": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "spread-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "spread-1",
+                    "position": 0.8,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "spread-2",
+                    "position": 2.3,
+                    "value": 1,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              },
+              "track-shuffle": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "shuffle-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "shuffle-1",
+                    "position": 0.25,
+                    "value": 1,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "shuffle-2",
+                    "position": 0.5,
+                    "value": -1,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "shuffle-3",
+                    "position": 0.75,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              },
+              "track-camera": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "camera-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "camera-1",
+                    "position": 0.65,
+                    "value": 0.45,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "camera-2",
+                    "position": 2.3,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "Select": {
+      "staticOverrides": {
+        "byObject": {}
+      },
+      "sequence": {
+        "type": "PositionalSequence",
+        "length": 0.65,
+        "subUnitsPerUnit": 60,
+        "tracksByObject": {
+          "Motion": {
+            "trackIdByPropPath": {
+              "[\"progress\"]": "track-progress"
+            },
+            "trackData": {
+              "track-progress": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "progress-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "progress-1",
+                    "position": 0.65,
+                    "value": 1,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "Reveal": {
+      "staticOverrides": {
+        "byObject": {}
+      },
+      "sequence": {
+        "type": "PositionalSequence",
+        "length": 0.8,
+        "subUnitsPerUnit": 60,
+        "tracksByObject": {
+          "Motion": {
+            "trackIdByPropPath": {
+              "[\"progress\"]": "track-progress"
+            },
+            "trackData": {
+              "track-progress": {
+                "type": "BasicKeyframedTrack",
+                "keyframes": [
+                  {
+                    "id": "progress-0",
+                    "position": 0,
+                    "value": 0,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  },
+                  {
+                    "id": "progress-1",
+                    "position": 0.8,
+                    "value": 1,
+                    "handles": [
+                      0.5,
+                      0,
+                      0.5,
+                      1
+                    ],
+                    "connectedRight": true,
+                    "type": "bezier"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

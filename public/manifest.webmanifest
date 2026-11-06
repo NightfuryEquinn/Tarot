@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "Midnight Arcana — Tarot & Reflection",
+  "short_name": "Midnight Arcana",
+  "description": "Five cards, a different perspective. A complete tarot deck and connected readings, available offline.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0c101b",
+  "theme_color": "#0c101b",
+  "lang": "en",
+  "categories": ["lifestyle", "education"],
+  "icons": [
+    {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

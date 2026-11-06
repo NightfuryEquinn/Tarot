@@ -1,0 +1,626 @@
+[
+  {
+    "id": "major-00",
+    "file": "/cards/major-00.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_00_Fool.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/6e/RWS1909_-_00_Fool.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/6/6e/RWS1909_-_00_Fool.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-01",
+    "file": "/cards/major-01.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_01_Magician.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/b0/RWS1909_-_01_Magician.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/b/b0/RWS1909_-_01_Magician.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-02",
+    "file": "/cards/major-02.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_02_High_Priestess.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/26/RWS1909_-_02_High_Priestess.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/2/26/RWS1909_-_02_High_Priestess.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-03",
+    "file": "/cards/major-03.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_03_Empress.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/70/RWS1909_-_03_Empress.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/7/70/RWS1909_-_03_Empress.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-04",
+    "file": "/cards/major-04.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_04_Emperor.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/b4/RWS1909_-_04_Emperor.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/b/b4/RWS1909_-_04_Emperor.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-05",
+    "file": "/cards/major-05.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_05_Hierophant.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/70/RWS1909_-_05_Hierophant.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/7/70/RWS1909_-_05_Hierophant.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-06",
+    "file": "/cards/major-06.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_06_Lovers.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/87/RWS1909_-_06_Lovers.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/8/87/RWS1909_-_06_Lovers.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-07",
+    "file": "/cards/major-07.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_07_Chariot.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/aa/RWS1909_-_07_Chariot.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/a/aa/RWS1909_-_07_Chariot.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-08",
+    "file": "/cards/major-08.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_08_Strength.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/29/RWS1909_-_08_Strength.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/2/29/RWS1909_-_08_Strength.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-09",
+    "file": "/cards/major-09.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_09_Hermit.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/28/RWS1909_-_09_Hermit.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/2/28/RWS1909_-_09_Hermit.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-10",
+    "file": "/cards/major-10.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_10_Wheel_of_Fortune.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/8a/RWS1909_-_10_Wheel_of_Fortune.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/8/8a/RWS1909_-_10_Wheel_of_Fortune.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-11",
+    "file": "/cards/major-11.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_11_Justice.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/4/4f/RWS1909_-_11_Justice.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/4/4f/RWS1909_-_11_Justice.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-12",
+    "file": "/cards/major-12.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_12_Hanged_Man.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/ab/RWS1909_-_12_Hanged_Man.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/a/ab/RWS1909_-_12_Hanged_Man.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-13",
+    "file": "/cards/major-13.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_13_Death.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/e9/RWS1909_-_13_Death.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/e/e9/RWS1909_-_13_Death.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-14",
+    "file": "/cards/major-14.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_14_Temperance.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/9e/RWS1909_-_14_Temperance.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/9/9e/RWS1909_-_14_Temperance.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-15",
+    "file": "/cards/major-15.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_15_Devil.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/26/RWS1909_-_15_Devil.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/2/26/RWS1909_-_15_Devil.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-16",
+    "file": "/cards/major-16.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_16_Tower.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/2a/RWS1909_-_16_Tower.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/2/2a/RWS1909_-_16_Tower.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-17",
+    "file": "/cards/major-17.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_17_Star.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/4/44/RWS1909_-_17_Star.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/17.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-18",
+    "file": "/cards/major-18.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_18_Moon.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/3d/RWS1909_-_18_Moon.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/18.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-19",
+    "file": "/cards/major-19.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_19_Sun.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/e1/RWS1909_-_19_Sun.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/19.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-20",
+    "file": "/cards/major-20.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_20_Judgement.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/8b/RWS1909_-_20_Judgement.jpeg",
+    "retrieved_from": "https://upload.wikimedia.org/wikipedia/commons/8/8b/RWS1909_-_20_Judgement.jpeg",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "major-21",
+    "file": "/cards/major-21.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_21_World.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/a4/RWS1909_-_21_World.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/21.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-01",
+    "file": "/cards/wands-01.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_01.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/ee/RWS1909_-_Wands_01.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/22.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-02",
+    "file": "/cards/wands-02.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_02.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/06/RWS1909_-_Wands_02.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/23.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-03",
+    "file": "/cards/wands-03.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_03.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/50/RWS1909_-_Wands_03.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/24.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-04",
+    "file": "/cards/wands-04.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_04.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/b5/RWS1909_-_Wands_04.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/25.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-05",
+    "file": "/cards/wands-05.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_05.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/79/RWS1909_-_Wands_05.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/26.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-06",
+    "file": "/cards/wands-06.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_06.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/2c/RWS1909_-_Wands_06.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/27.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-07",
+    "file": "/cards/wands-07.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_07.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/1/18/RWS1909_-_Wands_07.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/28.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-08",
+    "file": "/cards/wands-08.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_08.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/7e/RWS1909_-_Wands_08.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/29.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-09",
+    "file": "/cards/wands-09.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_09.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS1909_-_Wands_09.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/30.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-10",
+    "file": "/cards/wands-10.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_10.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/80/RWS1909_-_Wands_10.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/31.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-11",
+    "file": "/cards/wands-11.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_11.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/bd/RWS1909_-_Wands_11.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/32.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-12",
+    "file": "/cards/wands-12.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_12.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/77/RWS1909_-_Wands_12.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/33.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-13",
+    "file": "/cards/wands-13.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_13.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/50/RWS1909_-_Wands_13.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/34.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "wands-14",
+    "file": "/cards/wands-14.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_14.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/62/RWS1909_-_Wands_14.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/35.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-01",
+    "file": "/cards/cups-01.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_01.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/92/RWS1909_-_Cups_01.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/36.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-02",
+    "file": "/cards/cups-02.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_02.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/4/47/RWS1909_-_Cups_02.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/37.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-03",
+    "file": "/cards/cups-03.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_03.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/01/RWS1909_-_Cups_03.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/38.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-04",
+    "file": "/cards/cups-04.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_04.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/a6/RWS1909_-_Cups_04.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/39.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-05",
+    "file": "/cards/cups-05.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_05.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/1/15/RWS1909_-_Cups_05.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/40.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-06",
+    "file": "/cards/cups-06.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_06.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/68/RWS1909_-_Cups_06.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/41.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-07",
+    "file": "/cards/cups-07.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_07.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/bb/RWS1909_-_Cups_07.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/42.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-08",
+    "file": "/cards/cups-08.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_08.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/f/f9/RWS1909_-_Cups_08.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/43.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-09",
+    "file": "/cards/cups-09.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_09.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/d/df/RWS1909_-_Cups_09.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/44.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-10",
+    "file": "/cards/cups-10.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_10.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/0b/RWS1909_-_Cups_10.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/45.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-11",
+    "file": "/cards/cups-11.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_11.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/d/d4/RWS1909_-_Cups_11.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/46.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-12",
+    "file": "/cards/cups-12.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_12.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/06/RWS1909_-_Cups_12.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/47.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-13",
+    "file": "/cards/cups-13.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_13.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/91/RWS1909_-_Cups_13.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/48.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "cups-14",
+    "file": "/cards/cups-14.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_14.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/be/RWS1909_-_Cups_14.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/49.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-01",
+    "file": "/cards/swords-01.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_01.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/87/RWS1909_-_Swords_01.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/50.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-02",
+    "file": "/cards/swords-02.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_02.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/d/da/RWS1909_-_Swords_02.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/51.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-03",
+    "file": "/cards/swords-03.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_03.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/01/RWS1909_-_Swords_03.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/52.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-04",
+    "file": "/cards/swords-04.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_04.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/d/d9/RWS1909_-_Swords_04.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/53.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-05",
+    "file": "/cards/swords-05.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_05.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/bb/RWS1909_-_Swords_05.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/54.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-06",
+    "file": "/cards/swords-06.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_06.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/a6/RWS1909_-_Swords_06.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/55.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-07",
+    "file": "/cards/swords-07.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_07.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/26/RWS1909_-_Swords_07.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/56.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-08",
+    "file": "/cards/swords-08.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_08.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/f/f7/RWS1909_-_Swords_08.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/57.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-09",
+    "file": "/cards/swords-09.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_09.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/a5/RWS1909_-_Swords_09.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/58.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-10",
+    "file": "/cards/swords-10.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_10.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/eb/RWS1909_-_Swords_10.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/59.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-11",
+    "file": "/cards/swords-11.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_11.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/0b/RWS1909_-_Swords_11.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/60.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-12",
+    "file": "/cards/swords-12.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_12.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/d/d3/RWS1909_-_Swords_12.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/61.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-13",
+    "file": "/cards/swords-13.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_13.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/f/fd/RWS1909_-_Swords_13.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/62.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "swords-14",
+    "file": "/cards/swords-14.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_14.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/f/f4/RWS1909_-_Swords_14.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/63.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-01",
+    "file": "/cards/pentacles-01.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_01.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/a9/RWS1909_-_Pentacles_01.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/64.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-02",
+    "file": "/cards/pentacles-02.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_02.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/c/c2/RWS1909_-_Pentacles_02.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/65.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-03",
+    "file": "/cards/pentacles-03.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_03.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/5e/RWS1909_-_Pentacles_03.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/66.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-04",
+    "file": "/cards/pentacles-04.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_04.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/8c/RWS1909_-_Pentacles_04.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/67.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-05",
+    "file": "/cards/pentacles-05.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_05.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/7d/RWS1909_-_Pentacles_05.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/68.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-06",
+    "file": "/cards/pentacles-06.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_06.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/1/1a/RWS1909_-_Pentacles_06.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/69.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-07",
+    "file": "/cards/pentacles-07.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_07.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/51/RWS1909_-_Pentacles_07.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/70.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-08",
+    "file": "/cards/pentacles-08.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_08.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/e6/RWS1909_-_Pentacles_08.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/71.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-09",
+    "file": "/cards/pentacles-09.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_09.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/5e/RWS1909_-_Pentacles_09.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/72.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-10",
+    "file": "/cards/pentacles-10.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_10.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/bb/RWS1909_-_Pentacles_10.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/73.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-11",
+    "file": "/cards/pentacles-11.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_11.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/83/RWS1909_-_Pentacles_11.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/74.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-12",
+    "file": "/cards/pentacles-12.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_12.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/03/RWS1909_-_Pentacles_12.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/75.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-13",
+    "file": "/cards/pentacles-13.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_13.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/e1/RWS1909_-_Pentacles_13.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/76.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  },
+  {
+    "id": "pentacles-14",
+    "file": "/cards/pentacles-14.webp",
+    "source": "https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_14.jpeg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/ed/RWS1909_-_Pentacles_14.jpeg",
+    "retrieved_from": "https://sparkmxy.github.io/tarot/assets/rws-1909/77.webp",
+    "license": "Public domain \u2014 original 1909 artwork; faithful scan"
+  }
+]
