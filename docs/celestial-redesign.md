@@ -13,7 +13,7 @@ The experience keeps normal scrolling and clear, always-visible controls. It has
 ## Interaction
 
 1. An optional question and reversal preference accompany the opening artwork.
-2. All 78 face-down cards are accessible in a responsive scrollable grid. The chosen-card tray identifies all five positions. Tapping selects directly.
+2. All 78 face-down cards are visible together in responsive overlapping fans, fitted to the available selection-screen height. The chosen-card tray identifies all five positions. Tapping selects directly.
 3. Reveal each card in place using Anime.js on HTML faces. Continue after the turn, or skip the animation.
 4. See the five-card constellation, then open the original connected interpretation report.
 
@@ -21,7 +21,7 @@ Saved readings and library navigation remain available; restarting is explicit a
 
 ## Technical boundaries
 
-- Tailwind utilities own visual styles; dynamic inline styles are limited to animated transforms.
+- Tailwind utilities own visual styles; dynamic inline values provide measured fan geometry and animated transforms.
 - Cards never enter a WebGL scene. `CelestialScene` owns only decorative mist, stars, and bloom.
 - The backdrop is readable before JavaScript loads and when GPU effects are unavailable.
 - Rendering pauses while hidden. Reduced motion and gentle mode avoid mounting Three.js.
@@ -30,7 +30,7 @@ Saved readings and library navigation remain available; restarting is explicit a
 
 ## Verification and remaining device checks
 
-Automated checks: full ritual in a reduced-motion DOM environment; keyboard traversal; reset/cancel; partial-reading recovery; English/Chinese switching without mutation; library filtering, empty search, and orientation controls; existing shuffle/state/content/service-worker tests; TypeScript; production static export.
+Automated checks: all 78 rotated cards stay within the measured fan area; resizing updates keyboard rows without changing the reading; full ritual in a reduced-motion DOM environment; keyboard traversal; reset/cancel; partial-reading recovery; English/Chinese switching without mutation; library filtering, empty search, and orientation controls; existing shuffle/state/content/service-worker tests; TypeScript; production static export.
 
 The managed environment lacks `cua_repl.js`, required by its supported browser-preview workflow. Browser visual QA was therefore not run. Before merging, review at 320, 390, 768, and 1440px widths, in portrait and landscape. Check real-device scroll/animation performance, forced WebGL context loss, dynamic reduced-motion changes, keyboard/screen-reader flow, install/update dialogs, and a complete offline reload after the ready indicator.
 

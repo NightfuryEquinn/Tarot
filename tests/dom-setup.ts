@@ -48,3 +48,29 @@ Object.assign(globalThis, {
   cancelAnimationFrame: dom.window.cancelAnimationFrame.bind(dom.window),
   getComputedStyle: dom.window.getComputedStyle.bind(dom.window),
 });
+
+// JSDOM has no layout engine; emit explicit sizes for responsive interactions.
+const observers = new Map<Element, Set<ResizeObserverMock>>();
+class ResizeObserverMock {
+  constructor(readonly callback: ResizeObserverCallback) {}
+  observe(element: Element) {
+    if (!observers.has(element)) observers.set(element, new Set());
+    observers.get(element)!.add(this);
+    resizeElement(element, 320, 240);
+  }
+  unobserve(element: Element) {
+    observers.get(element)?.delete(this);
+  }
+  disconnect() {
+    for (const targets of observers.values()) targets.delete(this);
+  }
+}
+export function resizeElement(element: Element, width: number, height: number) {
+  for (const observer of observers.get(element) ?? []) {
+    observer.callback(
+      [{ target: element, contentRect: new dom.window.DOMRect(0, 0, width, height) } as ResizeObserverEntry],
+      observer as unknown as ResizeObserver,
+    );
+  }
+}
+Object.assign(globalThis, { ResizeObserver: ResizeObserverMock });

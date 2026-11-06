@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { animate, createScope, stagger } from "animejs";
-import { adjacentCard } from "@/lib/dealer";
+import { adjacentCard, fanColumns, fanLayout } from "@/lib/dealer";
 import { getPositions, type DrawnCard } from "@/lib/reading";
 import { useLanguage } from "./Language";
 import { CardBack } from "./CardBack";
@@ -26,9 +26,11 @@ export function DealerTable({
 }: Props) {
   const { t, locale } = useLanguage();
   const positions = getPositions(locale);
-  const [columns, setColumns] = useState(6),
+  const [size, setSize] = useState({ width: 320, height: 240 }),
     [keyboard, setKeyboard] = useState(0);
+  const columns = fanColumns(size.width);
   const root = useRef<HTMLDivElement>(null),
+    fans = useRef<HTMLDivElement>(null),
     buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const keyboardPick = useRef(false),
     finish = useRef(onDealComplete);
@@ -36,19 +38,18 @@ export function DealerTable({
   const first = deck.findIndex((_, i) => !selected.includes(i));
   const tabStop = selected.includes(keyboard) ? first : keyboard;
   useEffect(() => {
-    const sync = () =>
-      setColumns(
-        innerWidth < 390
-          ? 5
-          : innerWidth < 640
-            ? 6
-            : innerWidth < 1024
-              ? 8
-              : 13,
+    const element = fans.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setSize((previous) =>
+        previous.width === width && previous.height === height
+          ? previous
+          : { width, height },
       );
-    sync();
-    window.addEventListener("resize", sync);
-    return () => window.removeEventListener("resize", sync);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
   useEffect(() => {
     if (active) return;
@@ -80,7 +81,6 @@ export function DealerTable({
       keyboardPick.current = false;
       setKeyboard(first);
       buttons.current[first]?.focus({ preventScroll: true });
-      buttons.current[first]?.scrollIntoView({ block: "nearest" });
     }
   }, [first, selected.length]);
   useEffect(() => {
@@ -101,24 +101,27 @@ export function DealerTable({
     };
   }, [selected.length, reduced]);
   return (
-    <div ref={root} className="mx-auto w-full max-w-5xl">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-[10px] tracking-wider text-muted">
+    <div ref={root} className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col">
+      <div className="mb-2 flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[9px] tracking-wider text-muted sm:text-[10px]">
         <span>{t("THE COMPLETE DECK · 78 CARDS", "完整牌组 · 78 张牌")}</span>
         <span>
-          {t("Scroll to explore · Tap to choose", "滚动探索 · 轻触选择")}
+          {t("All in view · Tap to choose", "全部呈现 · 轻触选择")}
         </span>
       </div>
       <div
+        ref={fans}
+        data-card-fans
         role="group"
         aria-label={t(
           "All 78 face-down cards. Use arrow keys to explore and Enter or Space to choose.",
           "全部78张背面朝上的牌。使用方向键浏览，按回车键或空格键选择。",
         )}
         aria-busy={!active}
-        className="grid max-h-[360px] grid-cols-5 gap-2 overflow-y-auto overscroll-contain rounded-lg border border-line bg-ink/45 p-3 [scrollbar-color:#6b604e_#111927] min-[360px]:gap-2.5 min-[390px]:grid-cols-6 sm:max-h-[440px] sm:grid-cols-8 sm:gap-3 sm:p-5 lg:grid-cols-13"
+        className="relative isolate min-h-0 flex-1 rounded-lg border border-line bg-ink/45"
       >
         {deck.map((item, index) => {
           const chosen = selected.includes(index);
+          const position = fanLayout(index, columns, size.width, size.height);
           return (
             <button
               key={item.id}
@@ -126,7 +129,17 @@ export function DealerTable({
                 buttons.current[index] = el;
               }}
               data-card-index={index}
-              className={`group relative aspect-[3/4.5] min-h-11 min-w-11 rounded-sm p-0.5 ${chosen ? "border border-dashed border-gold/20" : "hover:z-10 focus-visible:z-10"}`}
+              style={{
+                "--card-x": `${position.x}px`,
+                "--card-top": `${position.row * position.rowHeight}px`,
+                "--card-y": `${position.y}px`,
+                "--row-height": `${position.rowHeight}px`,
+                "--card-width": `${position.width}px`,
+                "--card-height": `${position.height}px`,
+                "--hit-width": `${position.hitWidth}px`,
+                "--card-angle": `${position.angle}deg`,
+              } as CSSProperties}
+              className="group absolute left-[var(--card-x)] top-[var(--card-top)] h-[var(--row-height)] w-[var(--hit-width)] -translate-x-1/2 rounded-sm focus-visible:z-10 focus-visible:outline-offset-0"
               aria-label={
                 chosen
                   ? t(`Card ${index + 1} chosen`, `第${index + 1}张牌已选择`)
@@ -162,27 +175,22 @@ export function DealerTable({
                   );
                   setKeyboard(next);
                   buttons.current[next]?.focus({ preventScroll: true });
-                  buttons.current[next]?.scrollIntoView({ block: "nearest" });
                 }
               }}
             >
-              {chosen ? (
-                <span className="absolute inset-0 flex items-center justify-center text-gold/60">
-                  <Icon name="check" size={18} />
+              <span className="pointer-events-none absolute left-1/2 top-[var(--card-y)] h-[var(--card-height)] w-[var(--card-width)] -translate-x-1/2 -translate-y-1/2 rotate-[var(--card-angle)] rounded-sm">
+                <span className={`block size-full rounded-sm ${chosen ? "opacity-15" : "group-hover:brightness-125 group-focus-visible:brightness-125"}`}>
+                  <span data-deck-art className="block size-full rounded-sm shadow-lg">
+                    <CardBack compact />
+                  </span>
                 </span>
-              ) : (
-                <span
-                  data-deck-art
-                  className="block size-full rounded-sm motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-hover:-translate-y-1 motion-safe:group-focus-visible:-translate-y-1 group-hover:brightness-125 group-focus-visible:brightness-125"
-                >
-                  <CardBack compact />
-                </span>
-              )}
+                {chosen && <span className="absolute inset-0 flex items-center justify-center text-gold/70"><Icon name="check" size={14} /></span>}
+              </span>
             </button>
           );
         })}
       </div>
-      <div className="mt-7 flex items-center justify-between gap-3">
+      <div className="mt-2 flex shrink-0 items-center justify-between gap-3">
         <span className={eyebrow}>{t("YOUR SPREAD", "你的牌阵")}</span>
         <p aria-live="polite" className="text-xs text-gold">
           {t(
@@ -194,12 +202,12 @@ export function DealerTable({
       <div
         role="group"
         aria-label={t("Your five chosen cards", "你选择的五张牌")}
-        className="mt-4 grid grid-cols-5 gap-2 sm:gap-5"
+        className="mt-2 grid shrink-0 grid-cols-5 gap-2 sm:gap-5"
       >
         {positions.map((position, i) => (
           <div key={i} className="text-center">
             <div
-              className={`mx-auto flex aspect-[3/4] w-full max-w-20 items-center justify-center rounded-sm border ${selected[i] !== undefined ? "border-transparent" : "border-dashed border-gold/25 bg-gold/[0.025]"}`}
+              className={`mx-auto flex aspect-[3/4] h-[clamp(1.25rem,6dvh,3rem)] items-center justify-center rounded-sm border ${selected[i] !== undefined ? "border-transparent" : "border-dashed border-gold/25 bg-gold/[0.025]"}`}
             >
               {selected[i] !== undefined ? (
                 <span data-slot={i} className="block size-full rounded-sm">
@@ -211,7 +219,7 @@ export function DealerTable({
                 </span>
               )}
             </div>
-            <span className="mt-2 block text-[9px] leading-4 text-muted sm:text-[11px]">
+            <span className="mt-1 block text-[8px] leading-3 text-muted sm:text-[10px]">
               {position.label}
             </span>
           </div>

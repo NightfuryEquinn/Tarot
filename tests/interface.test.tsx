@@ -1,4 +1,4 @@
-import { dom } from "./dom-setup";
+import { dom, resizeElement } from "./dom-setup";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { act } from "react";
@@ -191,6 +191,34 @@ test("keyboard deck traversal skips chosen cards and respects the deck boundarie
   assert.equal(adjacentCard(77, "ArrowRight", 6, []), 77);
   assert.equal(adjacentCard(40, "Home", 6, [0, 1]), 2);
   assert.equal(adjacentCard(40, "End", 6, [77]), 76);
+});
+
+test("resizing the full-deck fan updates keyboard rows without changing the reading", async () => {
+  localStorage.clear();
+  history.replaceState(null, "", "/");
+  const unmount = await mount();
+  try {
+    await click(button("Let the cards speak"));
+    await click(document.querySelector('[data-card-index="3"]'));
+    const saved = localStorage.getItem("midnight-arcana.reading.v1");
+    const fans = document.querySelector("[data-card-fans]")!;
+    for (const [width, height, nextRow] of [[1000, 360, 39], [296, 160, 26]]) {
+      await act(async () => {
+        resizeElement(fans, width, height);
+        await tick();
+      });
+      const first = document.querySelector<HTMLButtonElement>('[data-card-index="0"]')!;
+      first.focus();
+      await act(async () => {
+        first.dispatchEvent(new dom.window.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+      });
+      assert.equal((document.activeElement as HTMLElement).dataset.cardIndex, String(nextRow));
+      assert.equal(document.querySelectorAll("[data-card-index]").length, 78);
+      assert.equal(localStorage.getItem("midnight-arcana.reading.v1"), saved);
+    }
+  } finally {
+    await unmount();
+  }
 });
 
 test("HTML deck arrival finishes and reducing motion snaps a card reveal to its final face", async () => {

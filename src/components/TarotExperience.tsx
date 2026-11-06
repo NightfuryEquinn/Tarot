@@ -264,8 +264,9 @@ export function TarotExperience() {
       "此浏览器暂时无法播放声音，你可以安静地继续解读。",
     ),
   };
+  const choosing = !viewOnly && (stage === "gather" || stage === "choose");
   return (
-    <div className="relative isolate min-h-dvh">
+    <div className={`relative isolate ${choosing ? "flex h-dvh flex-col" : "min-h-dvh"}`}>
       <CelestialBackdrop />
       {hasMotion && !failed && !viewOnly && (
         <CelestialScene onFailure={() => setFailed(true)} />
@@ -279,7 +280,7 @@ export function TarotExperience() {
       ) : (
         <>
           <header
-            className={`${sectionWidth} relative z-10 flex min-h-24 flex-wrap items-center justify-between gap-3 border-b border-line py-5`}
+            className={`${sectionWidth} relative z-10 flex shrink-0 items-center justify-between border-b border-line ${choosing ? "gap-2 py-2 max-sm:[&>a>span:last-child]:hidden" : "min-h-24 flex-wrap gap-3 py-5"}`}
           >
             <Brand />
             <nav
@@ -342,11 +343,11 @@ export function TarotExperience() {
           <main
             id="main"
             ref={root}
-            className={`${sectionWidth} relative pb-10 pt-7 sm:pt-10`}
+            className={`${sectionWidth} relative ${choosing ? "flex min-h-0 flex-1 flex-col py-2" : "pb-10 pt-7 sm:pt-10"}`}
           >
             <div
               id="ritual"
-              className="mb-8 flex items-center justify-between gap-3"
+              className={`${choosing ? "mb-1 shrink-0" : "mb-8"} flex items-center justify-between gap-3`}
             >
               <ol
                 aria-label={t("Reading progress", "解读进度")}
@@ -526,8 +527,8 @@ export function TarotExperience() {
               </>
             )}
             {(stage === "gather" || stage === "choose") && (
-              <section aria-label={t("Choose your cards", "选择你的牌")}>
-                <div data-enter className="mb-8 mt-6 text-center">
+              <section className="relative flex min-h-0 flex-1 flex-col" aria-label={t("Choose your cards", "选择你的牌")}>
+                <div data-enter className="mb-3 shrink-0 text-center">
                   <p className={eyebrow}>
                     {stage === "gather"
                       ? t("THE DECK FINDS ITS RHYTHM", "牌在流转，心渐安定")
@@ -539,7 +540,7 @@ export function TarotExperience() {
                   <h1
                     ref={title}
                     tabIndex={-1}
-                    className="mt-4 font-display text-4xl leading-tight outline-none sm:text-6xl"
+                    className="mt-1 font-display text-[clamp(1.5rem,4dvh,2.75rem)] leading-tight outline-none"
                   >
                     {stage === "gather" ? (
                       t("A moment in motion.", "一场轻盈的流转。")
@@ -552,7 +553,7 @@ export function TarotExperience() {
                       </>
                     )}
                   </h1>
-                  <p className="mt-4 text-sm leading-6 text-muted">
+                  <p className="mt-1 hidden text-xs leading-5 text-muted min-[800px]:block [@media(max-height:600px)]:hidden">
                     {t(
                       "Let a card catch your eye. Make it part of your story.",
                       "让一张牌吸引你的目光，成为你故事的一部分。",
@@ -568,8 +569,8 @@ export function TarotExperience() {
                   onPick={pick}
                 />
                 {stage === "gather" && (
-                  <div className="mt-5 text-center">
-                    <button className={textButton} onClick={skip}>
+                  <div className="absolute inset-x-0 top-1/2 z-20 text-center">
+                    <button className={`${textButton} rounded border border-line bg-ink/90 px-5`} onClick={skip}>
                       {t("Skip animation", "跳过动画")}
                       <Icon name="arrow" size={15} />
                     </button>
@@ -769,9 +770,9 @@ export function TarotExperience() {
             )}
           </main>
           <footer
-            className={`${sectionWidth} flex flex-wrap items-center justify-between gap-x-5 gap-y-1 border-t border-line py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]`}
+            className={`${sectionWidth} flex shrink-0 items-center justify-between gap-x-5 gap-y-1 border-t border-line ${choosing ? "py-0 pb-[env(safe-area-inset-bottom)]" : "flex-wrap py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"}`}
           >
-            <span className="text-[9px] tracking-[.16em] text-muted/70">
+            <span className={`${choosing ? "hidden sm:block" : ""} text-[9px] tracking-[.16em] text-muted/70`}>
               {t("A MOMENT TO PAUSE & REFLECT", "片刻停留，与自己对话")}
             </span>
             <div className="flex flex-wrap items-center gap-5">

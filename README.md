@@ -37,7 +37,7 @@ The redesign uses an ink, parchment, and antique gold palette, local Cormorant G
 
 **Three.js** is lazy-loaded for decorative nebula mist, stars, and restrained bloom only. It never receives cards, questions, selections, or reveal state. The compositor applies one output color conversion. Phones use 100 stars, up to 30 fps, capped device pixel ratio 1, and a reduced bloom buffer. Desktop uses 220 stars, up to 45 fps, and capped ratio 1.4. Sustained slow frames reduce resolution and star count while retaining the glow. WebGL and Anime.js pause while hidden. All GPU resources are disposed on unmount.
 
-The same cards, controls, and artwork remain available on mobile. The deck uses a scrollable grid with at least 44px card targets and 5/6/8/13 columns according to viewport width. Arrow keys move through available cards; Home and End reach the first and last available cards; Enter/Space selects. Keyboard focus recovers after selection. The whole deck is always available without relying on hover.
+The same cards, controls, and artwork remain available on mobile. The complete deck fits in overlapping curved fans: two on wide tables, three on smaller screens. The selection screen sizes the fan area to the available viewport, so all 78 cards are visible together without scrolling through the deck. Cards remain directly selectable by tap or click. Arrow keys move through available cards; Home and End reach the first and last available cards; Enter/Space selects. Keyboard focus recovers after selection. The whole deck is always available without relying on hover.
 
 System reduced motion and the persisted gentle-mode control disable ambient motion and use immediate card transitions. A static celestial backdrop stays visible with WebGL disabled or lost. Sound starts muted each session and creates an AudioContext only after the sound control is pressed.
 
@@ -53,7 +53,7 @@ Install with supported browser controls. On iOS, use Safari → Share → Add to
 
 ## Verification
 
-`npm run check` runs the authored-content/state/service-worker tests plus DOM interaction tests for a complete five-card ritual, keyboard selection and boundaries, restart confirmation, saved-reading restoration, language switching, library filters, search, and upright/reversed details. TypeScript and the production build check the static export.
+`npm run check` runs the authored-content/state/service-worker tests plus responsive fan bounds and DOM interaction tests for a complete five-card ritual, keyboard selection and boundaries, resizing without changing the reading, restart confirmation, saved-reading restoration, language switching, library filters, search, and upright/reversed details. TypeScript and the production build check the static export.
 
 DOM tests are not browser layout or GPU tests. This redesign still needs visual review on real desktop/mobile browsers, hardware frame-rate measurements, screen-reader checks, install prompts, and an actual offline reload. The managed environment used for this change did not expose its supported browser-control tool, so no browser screenshot or measured device-performance claim is made.
 
