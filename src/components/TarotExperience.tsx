@@ -56,7 +56,7 @@ export function TarotExperience(){
   useEffect(()=>{const change=()=>{if(document.hidden||!sound||viewOnly)void audio.current?.suspend();else void audio.current?.resume().catch(()=>setSound(false));};change();document.addEventListener('visibilitychange',change);return()=>document.removeEventListener('visibilitychange',change);},[sound,viewOnly]);
   useEffect(()=>{if(resetOpen)restartDialog.current?.showModal();else restartDialog.current?.close();},[resetOpen]);
   const begin=()=>{try{const token=++version.current;setGeneration(token);setPreview(null);dispatch({type:'start',deck:shuffleDeck(state.reversals)});setStage('gather');}catch{setNotice('shuffle');}};
-  const pick=()=>{if(stage!=='choose'||preview===null||pickLock.current||state.selected.length>=5||state.selected.includes(preview))return;pickLock.current=true;setPending(true);dispatch({type:'select',index:preview});};
+  const pick=(index:number)=>{if(stage!=='choose'||pickLock.current||state.selected.length>=5||!Number.isInteger(index)||!state.deck[index]||state.selected.includes(index))return;pickLock.current=true;setPreview(index);setPending(true);dispatch({type:'select',index});};
   const turn=()=>{if(turnLock.current||!canTurn(state,stage,focus,busy)||!draw)return;turnLock.current=true;setBusy(true);dispatch({type:'reveal',id:draw.id});audio.current?.chime(focus);};
   const takeNext=()=>{const index=nextReveal(state,focus);if(index<0)setStage('complete');else{setFocus(index);setBusy(false);turnLock.current=false;}};
   const skip=()=>{setSkipVersion(n=>n+1);setBusy(false);turnLock.current=false;if(stage==='gather')finishIntro(generation);if(pending)finishPick(generation);};
