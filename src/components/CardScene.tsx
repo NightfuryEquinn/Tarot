@@ -6,6 +6,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { getProject, types } from '@theatre/core';
 import animationState from '@/animation/ritual.theatre.json';
 import { cards } from '@/data/cards';
@@ -37,7 +38,18 @@ export default function CardScene(props:Props){
       vertexShader:'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
       fragmentShader:'uniform sampler2D tDiffuse;uniform float strength;uniform float time;varying vec2 vUv;void main(){vec4 c=texture2D(tDiffuse,vUv);float edge=smoothstep(.2,.72,distance(vUv,vec2(.5)));float grain=fract(sin(dot(vUv+fract(time)*.001,vec2(12.9898,78.233)))*43758.5453)-.5;c.rgb=c.rgb*(1.-strength*edge)+grain*.006;gl_FragColor=vec4(max(c.rgb,vec3(0.)),c.a);}'
     });
-    const output=new OutputPass();composer.addPass(renderPass);composer.addPass(bloom);composer.addPass(finish);composer.addPass(output);
+    // FXAA works on display-space color, after the single output conversion.
+    const output=new OutputPass(),fxaa=new ShaderPass(FXAAShader);
+    composer.addPass(renderPass);composer.addPass(bloom);composer.addPass(finish);composer.addPass(output);composer.addPass(fxaa);
+    const drawingSize=new THREE.Vector2();
+    const resize=()=>{
+      const width=Math.max(1,container.clientWidth),height=Math.max(1,container.clientHeight);
+      renderer.setSize(width,height);composer.setSize(width,height);bloom.setSize(width*.6,height*.6);
+      renderer.getDrawingBufferSize(drawingSize);
+      fxaa.uniforms.resolution.value.set(1/drawingSize.x,1/drawingSize.y);
+      camera.aspect=width/height;camera.updateProjectionMatrix();
+    };
+    resize();
     const project=getProject('Midnight Arcana Celestial',{state:animationState}),key=String(++instance);
     const arrival=project.sheet('Arrival',key),arrivalMotion=arrival.object('Motion',{gather:types.number(0),camera:types.number(0),vignette:types.number(.18)});
     const fan=project.sheet('Fan',key),fanMotion=fan.object('Motion',{spread:types.number(1),shuffle:types.number(0),camera:types.number(0)});
@@ -45,7 +57,7 @@ export default function CardScene(props:Props){
     const dealer=project.sheet('Dealer',key),dealerMotion=dealer.object('Motion',{progress:types.number(0)});
     const sheets=new Set([arrival,fan,finale,dealer]),playing=new Set<typeof fan>();let paused:(typeof fan)[]=[];
     let live=true,frame=0,readySent=false,firstSync=true,layoutDirty=true,snapFrames=0,last=0,lastDraw=0,time=0,slowFrames=0,wasStage: RitualStage|undefined,skip=current.current.skipVersion,loaded=false,introCompleteSent=false,pickCompleted=0,generation=current.current.generation,lowPower=false;
-    const disposables:{dispose:()=>void}[]=[composer,bloom,finish,output];
+    const disposables:{dispose:()=>void}[]=[composer,bloom,finish,output,fxaa];
     const textures:THREE.Texture[]=[];
     const play=(sheet:typeof fan)=>{sheet.sequence.pause();sheet.sequence.position=0;playing.add(sheet);void sheet.sequence.play().then(()=>playing.delete(sheet));};
     // One reusable procedural texture gives points a soft, circular light profile.
@@ -130,7 +142,7 @@ export default function CardScene(props:Props){
       focal=world.querySelector('.focal-frame')?.getBoundingClientRect();
       tableau=[...world.querySelectorAll('.tableau-frame')].map(el=>el.getBoundingClientRect());
     };
-    const observer=new ResizeObserver(()=>{const width=container.clientWidth,height=container.clientHeight;renderer.setSize(width,height);composer.setSize(width,height);bloom.setSize(width*.6,height*.6);camera.aspect=width/height;camera.updateProjectionMatrix();layoutDirty=true;});observer.observe(container);observer.observe(world);
+    const observer=new ResizeObserver(()=>{resize();layoutDirty=true;});observer.observe(container);observer.observe(world);
     const markLayout=()=>{layoutDirty=true;};window.addEventListener('resize',markLayout);window.addEventListener('scroll',markLayout,{passive:true});document.fonts?.addEventListener('loadingdone',markLayout);
     const rectToWorld=(rect:DOMRect)=>{
       const height=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*camera.position.z,width=height*camera.aspect;
@@ -141,7 +153,7 @@ export default function CardScene(props:Props){
       const interval=1000/(lowPower?30:60),elapsed=now-last;if(elapsed<interval-.5)return;
       const delta=lastDraw?Math.min((now-lastDraw)/1000,.08):1/60;lastDraw=now;
       if(last&&elapsed>48)slowFrames++;else slowFrames=Math.max(0,slowFrames-1);
-      if(slowFrames>45){lowPower=true;bloom.enabled=false;starGeometry.setDrawRange(0,120);}
+      if(slowFrames>45){lowPower=true;bloom.enabled=false;fxaa.enabled=false;starGeometry.setDrawRange(0,120);}
       time+=delta;last=now-(elapsed%interval);
       if(layoutDirty)measure(); // Read layout only after a state, viewport, or scroll change.
       const p=current.current,motion=arrivalMotion.value;camera.position.z=12-motion.camera*.5;
