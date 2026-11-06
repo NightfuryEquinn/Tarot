@@ -1,15 +1,16 @@
 # Midnight Arcana
 
-A five-card tarot ritual built with **Next.js, TypeScript, Anime.js, Three.js, and Theatre.js**. Static, installable, and available offline after its first complete download.
+A five-card tarot ritual built with **Next.js, TypeScript, Tailwind CSS, Anime.js, and Three.js**. Static, installable, and available offline after its first complete download.
 
 ## Experience
 
-- A full-screen celestial opening: one optional question, a single overview of all 78 cards, five choices, individual reveals, and a final constellation. The interpretations and deck library follow the ritual.
-- Choose five cards for **present situation, challenge, underlying influence, advice, and possible outcome**.
-- A continuous magical dealer shuffle, layered fans, enlarged face-down previews, direct card selections, and 3D reveals; a complete HTML interface supports touch, keyboard navigation, reduced motion, and WebGL failures.
-- All 78 Rider–Waite–Smith cards with original upright/reversed interpretations, advice, and shared thematic tags.
-- Connected readings explain shared themes, tensions, suits, ranks, and Major-to-Minor relationships using local authored rules.
-- Searchable card library with orientation controls and per-card provenance.
+A celestial observatory for a personal reading: set an optional intention, choose five cards from the complete deck, turn them one at a time, and explore their connections. A visible four-step journey and a persistent five-card tray make the ritual easy to follow.
+
+- All 78 original Rider–Waite–Smith illustrations, upright/reversed interpretations, advice, and shared thematic tags.
+- Five positions: present situation, challenge, underlying influence, advice, and possible outcome.
+- Searchable, filterable deck library with both orientations and per-card provenance.
+- Complete English and Simplified Chinese interfaces and interpretations; switching languages preserves the reading.
+- Private browser-local progress, optional synthesized ambience, reduced motion, keyboard controls, and offline installation.
 
 ## Development
 
@@ -18,45 +19,44 @@ Use Node.js 22.13+ or 24 and npm.
 ```sh
 npm ci
 npm run dev
-npm test
-npm run typecheck
+npm run check
 npm run build
 ```
 
-The production build exports static pages to `out/`, then generates a service worker and an asset manifest from the complete output. Host that directory at the root of an HTTPS origin. There is no application server, database, API key, or server action. The development server does not register a service worker.
+The production build exports static pages to `out/`, then generates a service worker and asset manifest from the complete output. Host that directory at the root of an HTTPS origin. There is no application server, database, API key, or server action. Development does not register a service worker.
 
-`.openai/hosting.json` records the Sites deployment identity and static output directory. Source is developed against the repository's `develop` branch. The hosted Site is owner-private by default.
+`.openai/hosting.json` retains the existing Sites identity and output directory. The GitHub integration branch is `develop`.
 
-## How it works
+## Visual system and animation
 
-`src/lib/reading.ts` owns the typed reading state, cryptographic shuffle, validation, and interpretation engine. State changes are independent of animation completion. The selected cards, orientations, and revealed status remain stable across reloads. Questions stay local and provide personal context; no AI service interprets them.
+The redesign uses an ink, parchment, and antique gold palette, local Cormorant Garamond and Manrope type, orbital linework, and layered card artwork. The visual references are [Star Atlas](https://staratlas.com/) for celestial depth and [Penderecki’s Garden](https://pendereckisgarden.pl/en) for a quiet, exploratory atmosphere. These are references for direction; no assets or code are copied. See [the design notes](docs/celestial-redesign.md) for implementation and QA details.
 
-Three.js renders cards, drifting particles, nebula light, and a constellation. EffectComposer applies restrained UnrealBloomPass bloom (strength 0.35, radius 0.4, threshold 1.05), a soft vignette, subtle grain, and one output color conversion. A single FXAA pass smooths edges after that conversion using the actual drawing-buffer size, without increasing pixel ratio or adding multisampling. Card textures stay below the bloom threshold. Theatre Core plays the committed `src/animation/ritual.theatre.json` sequences for arrival, shuffle/fan motion, selection, reveal, and completion. A persistent scene aligns its card meshes to the bounding boxes of semantic HTML controls, so touch and keyboard targets match the visuals. Anime.js controls DOM transitions through component-scoped instances. Each library owns different properties. Theatre Studio is a development dependency and is not imported into production; animation state can be loaded into Studio during future authoring.
+**Tailwind CSS 4** owns layout, responsive styling, ornaments, focus states, and card backs. `globals.css` contains the Tailwind import, theme tokens, local font declarations, and minimal base rules. `src/components/ui.ts` shares utility recipes. There are no bespoke component stylesheets.
 
-Only selected cards acquire WebGL face textures. The ambient scene renders at up to 60 fps on desktop or 30 fps on mobile, capped at a device-pixel ratio of 1.5 or 1.25 respectively. Bloom uses a reduced-resolution buffer. Sustained slow frames disable bloom and FXAA and reduce particle count. Rendering and audio pause while hidden. Reduce effects and the system reduced-motion setting provide the same journey with static HTML artwork. Context loss switches to the HTML interface without changing the reading.
+**Anime.js** animates the HTML card fan, slow orbital motion, deck arrival, selection into the tray, and perspective card turns. The same HTML elements are the actual touch and keyboard targets. Reading state does not depend on WebGL or successful animation completion. The former card mesh renderer and unused Theatre timelines have been removed.
 
-Optional ambience and reveal tones are synthesized locally with Web Audio. Sound starts muted each session and AudioContext is only created after pressing the sound control. The card state remains independent of animation, and every transition can be skipped safely. Saved version-1 readings, including out-of-order reveals from the original interface, resume correctly.
+**Three.js** is lazy-loaded for decorative nebula mist, stars, and restrained bloom only. It never receives cards, questions, selections, or reveal state. The compositor applies one output color conversion. Phones use 100 stars, up to 30 fps, capped device pixel ratio 1, and a reduced bloom buffer. Desktop uses 220 stars, up to 45 fps, and capped ratio 1.4. Sustained slow frames reduce resolution and star count while retaining the glow. WebGL and Anime.js pause while hidden. All GPU resources are disposed on unmount.
 
-## Offline and local data
+The same cards, controls, and artwork remain available on mobile. The deck uses a scrollable grid with at least 44px card targets and 5/6/8/13 columns according to viewport width. Arrow keys move through available cards; Home and End reach the first and last available cards; Enter/Space selects. Keyboard focus recovers after selection. The whole deck is always available without relying on hover.
 
-A persistent OfflineProvider registers the service worker independently of page navigation. The service worker caches every exported page, navigation payload, JavaScript chunk, artwork file, font, and icon. Artwork accounts for 8.39 MiB. “Ready offline” appears after successful installation. Interrupted downloads can be retried. Downloaded updates wait for the user to choose the update before replacing the active version.
+System reduced motion and the persisted gentle-mode control disable ambient motion and use immediate card transitions. A static celestial backdrop stays visible with WebGL disabled or lost. Sound starts muted each session and creates an AudioContext only after the sound control is pressed.
 
-The question, shuffled deck, selections, reveal progress, and reversal preference are stored under `midnight-arcana.reading.v1` in localStorage. There is no history archive or cloud synchronization. Starting a new reading clears the question and cards. Invalid saved state is ignored; unavailable storage falls back to the current session. Browsers can evict cached data; reopening online restores the download.
+## Content, state, and offline access
 
-Install using supported browser install controls. On iOS, use Safari → Share → Add to Home Screen. HTTPS or localhost is required for service workers.
+`src/lib/reading.ts` owns the unchanged typed state, cryptographic shuffle, validation, and authored interpretation engine. Questions provide personal context; no AI service interprets them. Saved version-1 readings, including older out-of-order reveals, resume without changing cards or orientations.
+
+The question, shuffled deck, selections, reveals, and reversal preference use `midnight-arcana.reading.v1` in localStorage. Language uses `midnight-arcana.locale.v1`; gentle mode uses `midnight-arcana.gentle`. There is no history archive or cloud synchronization. Starting another reading asks before clearing the current one. Invalid saved data is ignored, and unavailable storage falls back to the current session.
+
+The persistent OfflineProvider caches all exported pages, navigation payloads, JavaScript chunks (including the lazy scene), artwork, fonts, and icons. Artwork accounts for 8.39 MiB. “Ready offline” appears after a complete download; interrupted downloads can be retried. Downloaded updates wait for the user's choice before replacing the active version. Browsers can evict cached data; reopening online restores it.
+
+Install with supported browser controls. On iOS, use Safari → Share → Add to Home Screen. HTTPS or localhost is required for service workers. Both languages are cached, and Chinese uses installed system fonts.
+
+## Verification
+
+`npm run check` runs the authored-content/state/service-worker tests plus DOM interaction tests for a complete five-card ritual, keyboard selection and boundaries, restart confirmation, saved-reading restoration, language switching, library filters, search, and upright/reversed details. TypeScript and the production build check the static export.
+
+DOM tests are not browser layout or GPU tests. This redesign still needs visual review on real desktop/mobile browsers, hardware frame-rate measurements, screen-reader checks, install prompts, and an actual offline reload. The managed environment used for this change did not expose its supported browser-control tool, so no browser screenshot or measured device-performance claim is made.
 
 ## Artwork and credits
 
 The illustrations are faithful public-domain scans of the original 1909 Roses & Lilies Rider–Waite–Smith deck, illustrated by Pamela Colman Smith under the direction of Arthur Edward Waite. Fonts are local Cormorant Garamond and Manrope under the SIL Open Font License. See [ASSET_SOURCES.md](ASSET_SOURCES.md), included font licenses, and [per-card source records](public/cards/sources.json).
-
-## Verification
-
-Automated tests cover dataset completeness, local images, unique draws, reversals, selection limits, saved-state recovery, mixed and single-arcana relationships, Theatre timeline endpoints, sequential reveals, compatibility with saved readings, and service-worker installation/update/navigation behavior. Production compilation checks the static export and TypeScript.
-
-Headless Chromium checks cover direct mouse, touch, and keyboard selection, focus recovery, saved-reading restoration, both languages, reduced motion, and WebGL context-loss fallback. Real-device checks remain necessary for GPU performance, visual quality, screen readers, install prompts, and a complete offline reload; software rendering does not establish hardware performance.
-
-The dealer table shows all 78 cards in three curved rows on desktop, six on phones, or seven on very narrow screens. Hover or focus previews a face-down card; one click or tap chooses that card directly into the five-slot tray. Arrow keys move between cards; Enter or Space chooses the focused card, and Escape clears the preview. Keyboard focus returns to an available card after each choice. There is no separate confirmation button. The 3.2-second Theatre dealer sequence gathers, cuts, interleaves, squares, and spreads the same meshes. Completion callbacks unlock selection and advance after the fifth card settles. Reduced motion and WebGL fallback use the same HTML controls without waiting for scene animation.
-
-## Languages
-
-English and Simplified Chinese are bundled locally, including all 78 names, 156 interpretations with advice, reading connections, library search, and offline/install UI. The English / 简体中文 selector persists in `midnight-arcana.locale.v1`; first use follows the browser language, falling back to English. Switching language preserves the existing `midnight-arcana.reading.v1` reading and never changes shuffle order, orientations, or relationship scoring. Original artwork lettering is preserved. Chinese uses installed system fonts, so it needs no external font request. Both languages are included in the static PWA cache.
