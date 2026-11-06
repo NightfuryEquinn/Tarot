@@ -4,7 +4,7 @@ A five-card tarot ritual built with **Next.js, TypeScript, Anime.js, Three.js, a
 
 ## Experience
 
-- A midnight-blue and gold reading space, responsive from small phones to desktop.
+- A full-screen celestial opening: one optional question, five card choices, individual reveals, and a final constellation. The interpretations and deck library follow the ritual.
 - Choose five cards for **present situation, challenge, underlying influence, advice, and possible outcome**.
 - Animated 3D shuffle, fan, selection, and reveals; a complete HTML interface supports touch, keyboard navigation, reduced motion, and WebGL failures.
 - All 78 Rider–Waite–Smith cards with original upright/reversed interpretations, advice, and shared thematic tags.
@@ -31,13 +31,15 @@ The production build exports static pages to `out/`, then generates a service wo
 
 `src/lib/reading.ts` owns the typed reading state, cryptographic shuffle, validation, and interpretation engine. State changes are independent of animation completion. The selected cards, orientations, and revealed status remain stable across reloads. Questions stay local and provide personal context; no AI service interprets them.
 
-Three.js renders card meshes and textures. Theatre Core plays the committed `src/animation/ritual.theatre.json` sequences for shuffle/fan motion, selection, and reveal. Anime.js controls DOM transitions through component-scoped instances. Each library owns different properties. Theatre Studio is a development dependency and is not imported into production; animation state can be loaded into Studio during future authoring.
+Three.js renders cards, drifting particles, nebula light, and a constellation. EffectComposer applies restrained UnrealBloomPass bloom (strength 0.35, radius 0.4, threshold 1.05), a soft vignette, subtle grain, and one output color conversion. Card textures stay below the bloom threshold. Theatre Core plays the committed `src/animation/ritual.theatre.json` sequences for arrival, shuffle/fan motion, selection, reveal, and completion. A persistent scene aligns its card meshes to the bounding boxes of semantic HTML controls, so touch and keyboard targets match the visuals. Anime.js controls DOM transitions through component-scoped instances. Each library owns different properties. Theatre Studio is a development dependency and is not imported into production; animation state can be loaded into Studio during future authoring.
 
-Only selected cards acquire WebGL face textures. Rendering is capped at a device-pixel ratio of 1.5, scheduled when something changes, and paused while hidden. Context loss switches to the HTML interface without changing the reading.
+Only selected cards acquire WebGL face textures. The ambient scene renders at up to 60 fps on desktop or 30 fps on mobile, capped at a device-pixel ratio of 1.5 or 1.25 respectively. Bloom uses a reduced-resolution buffer. Sustained slow frames disable bloom and reduce particle count. Rendering and audio pause while hidden. Reduce effects and the system reduced-motion setting provide the same journey with static HTML artwork. Context loss switches to the HTML interface without changing the reading.
+
+Optional ambience and reveal tones are synthesized locally with Web Audio. Sound starts muted each session and AudioContext is only created after pressing the sound control. The card state remains independent of animation, and every transition can be skipped safely. Saved version-1 readings, including out-of-order reveals from the original interface, resume correctly.
 
 ## Offline and local data
 
-The service worker caches every exported page, navigation payload, JavaScript chunk, artwork file, font, and icon. Artwork accounts for 8.39 MiB. “Ready offline” appears after successful installation. Interrupted downloads can be retried. Downloaded updates wait for the user to choose the update before replacing the active version.
+A persistent OfflineProvider registers the service worker independently of page navigation. The service worker caches every exported page, navigation payload, JavaScript chunk, artwork file, font, and icon. Artwork accounts for 8.39 MiB. “Ready offline” appears after successful installation. Interrupted downloads can be retried. Downloaded updates wait for the user to choose the update before replacing the active version.
 
 The question, shuffled deck, selections, reveal progress, and reversal preference are stored under `midnight-arcana.reading.v1` in localStorage. There is no history archive or cloud synchronization. Starting a new reading clears the question and cards. Invalid saved state is ignored; unavailable storage falls back to the current session. Browsers can evict cached data; reopening online restores the download.
 
@@ -49,6 +51,6 @@ The illustrations are faithful public-domain scans of the original 1909 Roses & 
 
 ## Verification
 
-Automated tests cover dataset completeness, local images, unique draws, reversals, selection limits, saved-state recovery, mixed and single-arcana relationships, Theatre timeline endpoints, and service-worker installation/update/navigation behavior. Production compilation checks the static export and TypeScript.
+Automated tests cover dataset completeness, local images, unique draws, reversals, selection limits, saved-state recovery, mixed and single-arcana relationships, Theatre timeline endpoints, sequential reveals, compatibility with saved readings, and service-worker installation/update/navigation behavior. Production compilation checks the static export and TypeScript.
 
 Browser checks still required for a release: desktop/mobile rendering, actual WebGL interactions and context loss, keyboard/screen-reader behavior, reduced motion, install prompts, and a complete offline reload. The implementation environment did not expose the supported browser QA runtime; automated tests do not replace those browser checks.

@@ -18,4 +18,10 @@ test('committed Theatre sequences produce a closed deck, expanded fan, and compl
     sheet.sequence.position=duration/2;assert.ok(motion.value.progress>0&&motion.value.progress<1);
     sheet.sequence.position=duration;assert.equal(motion.value.progress,1);
   }
+  const arrival=project.sheet('Arrival');
+  const arrivalMotion=arrival.object('Motion',{gather:types.number(0),camera:types.number(0),vignette:types.number(.18)});
+  arrival.sequence.position=.9;assert.equal(arrivalMotion.value.gather,1);assert.equal(arrivalMotion.value.camera,1);
+  arrival.sequence.position=1.9;assert.equal(arrivalMotion.value.gather,0);assert.equal(arrivalMotion.value.camera,0);assert.equal(arrivalMotion.value.vignette,.18);
+  const finale=project.sheet('Finale'),finaleMotion=finale.object('Motion',{progress:types.number(0),glow:types.number(0)});
+  finale.sequence.position=1.2;assert.equal(finaleMotion.value.progress,1);assert.equal(finaleMotion.value.glow,.2);
 });

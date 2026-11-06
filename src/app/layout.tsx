@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
-import { Header, Footer } from '@/components/Shell';
+
+import { OfflineProvider } from '@/components/OfflineStatus';
 import './globals.css';
+import './cinematic.css';
 
 export const metadata: Metadata = {
   title: { default: 'Midnight Arcana — A moment with the cards', template: '%s · Midnight Arcana' },
@@ -11,5 +13,5 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0c101b' };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><a className="skip-link" href="#main">Skip to content</a><Header />{children}<Footer /></body></html>;
+  return <html lang="en"><body><a className="skip-link" href="#main">Skip to content</a><OfflineProvider>{children}</OfflineProvider></body></html>;
 }

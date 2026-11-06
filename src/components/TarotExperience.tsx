@@ -1,123 +1,132 @@
 'use client';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { animate, createScope } from 'animejs';
-import { cards } from '@/data/cards';
-import { cardById, connectReading, emptyReading, meaningFor, positions, readingReducer, restoreReading, shuffleDeck, summarizeReading } from '@/lib/reading';
+import { cardById, emptyReading, meaningFor, positions, readingReducer, restoreReading, shuffleDeck } from '@/lib/reading';
+import { canTurn, nextReveal, resumeRitual, type RitualStage } from '@/lib/cinematic';
+import { Ambience } from '@/lib/ambience';
 import { Icon } from './Icon';
+import { Header, Footer } from './Shell';
+import { OfflineStatus } from './OfflineStatus';
+import { ReadingReport } from './ReadingReport';
 
-const CardScene = dynamic(() => import('./CardScene'), { ssr: false, loading: () => <div className="scene-loading"><Icon name="star" /><span>Setting the table…</span></div> });
+const CardScene=dynamic(()=>import('./CardScene'),{ssr:false});
 const STORAGE_KEY='midnight-arcana.reading.v1';
+export function CardBack(){return <span className="card-back" aria-hidden="true"><svg viewBox="0 0 100 130" fill="none" stroke="currentColor" strokeWidth=".8"><circle cx="50" cy="65" r="30" opacity=".4"/><path d="M50 16v16m0 66v16M1 65h16m66 0h16M15 30l12 12m46 46 12 12M15 100l12-12m46-46 12-12"/><path d="M17 65Q50 33 83 65 50 97 17 65Z"/><circle cx="50" cy="65" r="13"/><circle cx="50" cy="65" r="4" fill="currentColor"/></svg></span>;}
 
-export function CardBack({ small=false }: {small?:boolean}) {
-  return <span className={`card-back ${small?'small-back':''}`} aria-hidden="true"><span className="back-corner top">✦</span><svg viewBox="0 0 100 130" fill="none" stroke="currentColor" strokeWidth=".8"><circle cx="50" cy="65" r="30" opacity=".4"/><path d="M50 16v16m0 66v16M1 65h16m66 0h16M15 30l12 12m46 46 12 12M15 100l12-12m46-46 12-12"/><path d="M17 65Q50 33 83 65 50 97 17 65Z"/><circle cx="50" cy="65" r="13"/><circle cx="50" cy="65" r="4" fill="currentColor"/><path d="m50 5 3 6-3 6-3-6Zm0 108 3 6-3 6-3-6Z"/></svg><span className="back-corner bottom">✦</span></span>;
-}
-
-export function TarotExperience() {
+export function TarotExperience(){
   const [state,dispatch]=useReducer(readingReducer,emptyReading);
-  const [hydrated,setHydrated]=useState(false);
-  const [storageError,setStorageError]=useState(false);
-  const [drawError,setDrawError]=useState('');
+  const [stage,setStage]=useState<RitualStage>('question');
+  const [focus,setFocus]=useState(0);
+  const [ready,setReady]=useState(false);
+  const [report,setReport]=useState(false);
+  const [busy,setBusy]=useState(false);
+  const [skipVersion,setSkipVersion]=useState(0);
   const [reduced,setReduced]=useState(true);
   const [simple,setSimple]=useState(false);
-  const [webglFailed,setWebglFailed]=useState(false);
-  const [howOpen,setHowOpen]=useState(false);
+  const [failed,setFailed]=useState(false);
+  const [notice,setNotice]=useState('');
   const [resetOpen,setResetOpen]=useState(false);
+  const [sound,setSound]=useState(false);
+  const [sceneReady,setSceneReady]=useState(false);
+  const [browse,setBrowse]=useState(0);
+  const [pageSize,setPageSize]=useState(5);
   const root=useRef<HTMLElement>(null);
-  const ritual=useRef<HTMLElement>(null);
-  const results=useRef<HTMLElement>(null);
-  const hasDeck=state.deck.length>0;
-  const complete=state.selected.length===5;
-  const allRevealed=state.revealed.length===5;
-  const draws=useMemo(()=>state.selected.map(index=>state.deck[index]),[state.deck,state.selected]);
-  const connections=useMemo(()=>allRevealed?connectReading(draws):[],[allRevealed,draws]);
-  const stage=!hasDeck?'prepare':!complete?'choose':!allRevealed?'reveal':'reflect';
-  const canAnimate=!reduced&&!simple&&!webglFailed;
-
+  const title=useRef<HTMLHeadingElement>(null);
+  const audio=useRef<Ambience|null>(null);
+  const turnLock=useRef(false);
+  const restartDialog=useRef<HTMLDialogElement>(null);
+  const hasScene=ready&&!reduced&&!simple&&!failed;
+  const draws=state.selected.map(index=>state.deck[index]);
+  const draw=draws[focus];
+  const revealed=!!draw&&state.revealed.includes(draw.id);
+  const card=draw?cardById.get(draw.id):undefined;
+  const viewOnly=report&&state.revealed.length===5;
+  useEffect(()=>{setSceneReady(false);},[viewOnly]);
+  const takeNext=()=>{
+    const index=nextReveal(state,focus);
+    if(index<0)setStage('complete');else{setFocus(index);setBusy(false);turnLock.current=false;}
+  };
   useEffect(()=>{
     const media=window.matchMedia('(prefers-reduced-motion: reduce)');
     const sync=()=>setReduced(media.matches);sync();media.addEventListener('change',sync);
-    try{const saved=restoreReading(localStorage.getItem(STORAGE_KEY));if(saved)dispatch({type:'restore',state:saved});}catch{setStorageError(true);}
-    setHydrated(true);return()=>media.removeEventListener('change',sync);
+    const size=()=>{setPageSize(innerWidth<600?5:innerWidth<1000?9:13);setBrowse(0);};size();window.addEventListener('resize',size);
+    try{
+      const saved=restoreReading(localStorage.getItem(STORAGE_KEY));
+      if(saved){dispatch({type:'restore',state:saved});const resumed=resumeRitual(saved);setStage(resumed.stage);setFocus(resumed.focus);if(saved.revealed.length===5&&['#reading','#about'].includes(location.hash))setReport(true);}
+    }catch{setNotice('Progress cannot be saved in this browser. You can still complete your reading.');}
+    setReady(true);
+    return()=>{media.removeEventListener('change',sync);window.removeEventListener('resize',size);audio.current?.dispose();audio.current=null;};
   },[]);
   useEffect(()=>{
-    if(!hydrated)return;
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{setStorageError(true);}
-  },[state,hydrated]);
+    if(!ready)return;
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{setNotice('Progress cannot be saved in this browser. You can still complete your reading.');}
+  },[state,ready]);
   useEffect(()=>{
+    if(stage!=='gather')return;
+    const timer=setTimeout(()=>setStage('choose'),hasScene?1900:180);return()=>clearTimeout(timer);
+  },[stage,hasScene]);
+  useEffect(()=>{
+    if(stage==='choose'&&state.selected.length===5){const next=resumeRitual(state);setFocus(next.focus);setStage(next.stage);}
+  },[state,stage]);
+  useEffect(()=>{
+    if(!busy)return;
+    const timer=setTimeout(()=>{setBusy(false);turnLock.current=false;},hasScene?1000:180);return()=>clearTimeout(timer);
+  },[busy,hasScene]);
+  useEffect(()=>{
+    if(!ready)return;
+    title.current?.focus({preventScroll:true});
     if(reduced||!root.current)return;
-    const scope=createScope({root}).add(()=>{
-      animate('.stage-enter',{opacity:[0,1],translateY:[12,0],duration:650,ease:'out(3)'});
-    });
+    const scope=createScope({root}).add(()=>{animate('.cinema-enter',{opacity:[0,1],translateY:[10,0],duration:650,ease:'out(3)'});});
     return()=>scope.revert();
-  },[stage,reduced]);
-  const start=()=>{
-    try{dispatch({type:'start',deck:shuffleDeck(state.reversals)});setDrawError('');}catch{setDrawError('The deck could not be shuffled. Please try again in a current browser.');}
+  },[stage,focus,viewOnly,ready,reduced]);
+  useEffect(()=>{
+    const change=()=>{if(state.revealed.length===5)setReport(['#reading','#about'].includes(location.hash));};
+    window.addEventListener('hashchange',change);return()=>window.removeEventListener('hashchange',change);
+  },[state.revealed.length]);
+  useEffect(()=>{
+    const change=()=>{if(document.hidden||!sound||viewOnly)void audio.current?.suspend();else void audio.current?.resume().catch(()=>setSound(false));};
+    change();document.addEventListener('visibilitychange',change);return()=>document.removeEventListener('visibilitychange',change);
+  },[sound,viewOnly]);
+  useEffect(()=>{if(resetOpen)restartDialog.current?.showModal();else restartDialog.current?.close();},[resetOpen]);
+  const begin=()=>{
+    try{dispatch({type:'start',deck:shuffleDeck(state.reversals)});setBrowse(0);setStage('gather');}
+    catch{setNotice('The deck couldn’t be shuffled. Please try again in a current browser.');}
   };
-  const reset=()=>{dispatch({type:'reset'});setResetOpen(false);ritual.current?.scrollIntoView({behavior:reduced?'instant':'smooth',block:'start'});};
-  const revealAll=()=>draws.forEach(draw=>dispatch({type:'reveal',id:draw.id}));
-
-  return <main id="main" ref={root}>
-    <section className="hero section-width">
-      <div className="hero-copy"><span className="eyebrow"><span className="tiny-line"/> THE ANSWERS BEGIN WITH A PAUSE</span>
-        <h1>A little stillness.<br/>A different<br/><em>perspective.</em></h1>
-        <p>Seventy-eight stories. Five cards. One moment for you.<br className="desktop-break"/> Let the cards open a conversation with yourself.</p>
-        <a className="button primary" href="#ritual">{hasDeck?'Return to your reading':'Find your reading'} <Icon name="arrow" size={18}/></a>
-        <div className="hero-caption"><span className="tiny-stars">✧ ✦ ✧</span><span>NO SIGN-UP. JUST YOU AND THE CARDS.</span></div>
-      </div>
-      <div className="hero-art" aria-label="The Moon, The Star, and The Sun tarot cards">
-        <div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="orbit orbit-three"/>
-        <span className="orbit-star star-a">✦</span><span className="orbit-star star-b">✧</span><span className="orbit-star star-c">✦</span><span className="orbit-star star-d">✧</span>
-        <div className="hero-card moon-card"><img src="/cards/major-18.webp" alt="The Moon" width="480" height="800"/><span>XVIII · THE MOON</span></div>
-        <div className="hero-card sun-card"><img src="/cards/major-19.webp" alt="The Sun" width="480" height="800"/><span>XIX · THE SUN</span></div>
-        <div className="hero-card star-card"><img src="/cards/major-17.webp" alt="The Star" width="480" height="800" fetchPriority="high"/><span>XVII · THE STAR</span></div>
-        <span className="art-annotation">AS ABOVE, SO WITHIN</span>
-      </div>
-    </section>
-    <div className="ritual-divider section-width"><span>AN OLD PRACTICE. A FRESH PERSPECTIVE.</span><span className="divider-line"/><Icon name="star" size={17}/><span className="divider-line"/><span>YOUR OWN SMALL RITUAL</span></div>
-
-    <section className="ritual-section section-width" id="ritual" ref={ritual}>
-      <div className="section-heading"><div><span className="eyebrow">01 / THE RITUAL</span><h2>Make room for <em>what’s here.</em></h2></div><button className="text-button" aria-expanded={howOpen} onClick={()=>setHowOpen(!howOpen)}>How it works <Icon name={howOpen?'close':'book'} size={16}/></button></div>
-      {howOpen&&<div className="how-panel"><p>Think of a situation you’d like to explore. Shuffle, choose five face-down cards, then reveal them. Each position adds context to a card’s meaning. The connections bring the story together.</p><p>Major Arcana point to larger lessons; Minor Arcana explore everyday life. A reversal can suggest a blocked, inward, excessive, or releasing expression of a card. Readings offer possibilities, and you decide what resonates.</p></div>}
-      <div className="reading-table">
-        <div className="table-topline"><span><Icon name="cards" size={18}/> THE FIVE-CARD GUIDANCE SPREAD</span><span className="table-step">{stage==='prepare'?'SET YOUR INTENTION':stage==='choose'?`${state.selected.length} OF 5 SELECTED`:stage==='reveal'?`${state.revealed.length} OF 5 REVEALED`:'YOUR READING IS COMPLETE'}</span></div>
-        <div className="step-tracker" aria-label="Reading progress">{['Prepare','Choose','Reveal','Reflect'].map((label,i)=><span key={label} className={['prepare','choose','reveal','reflect'].indexOf(stage)>=i?'active':''}><b>{i+1}</b>{label}</span>)}</div>
-        {!hasDeck?<div className="prepare-panel stage-enter">
-          <div className="intention-copy"><Icon name="moon" size={31}/><h3>First, take a breath.</h3><p>You don’t need the perfect question.<br/>Just something you’re ready to look at differently.</p></div>
-          <label className="question-label" htmlFor="question">WHAT’S ON YOUR MIND? <span>OPTIONAL · ONLY SAVED ON THIS DEVICE</span></label>
-          <textarea id="question" value={state.question} maxLength={300} rows={2} placeholder="What would help me move forward?" onChange={e=>dispatch({type:'question',value:e.target.value})}/>
-          <div className="prepare-actions"><label className="switch-label"><input type="checkbox" checked={state.reversals} onChange={e=>dispatch({type:'reversals',value:e.target.checked})}/><span className="switch-track"/><span>Include reversed cards<small>A different expression of the same story</small></span></label><button className="button primary" disabled={!hydrated} onClick={start}><Icon name="shuffle" size={18}/> Shuffle the deck <Icon name="arrow" size={17}/></button></div>
-          {drawError&&<p role="alert" className="notice">{drawError}</p>}
-          <div className="spread-preview">{positions.map((position,i)=><div key={position.name}><div className="preview-outline"><span>{['I','II','III','IV','V'][i]}</span><Icon name={['sun','star','moon','star','sun'][i]} size={22}/></div><b>{position.name}</b><span>{position.prompt}</span></div>)}</div>
-        </div>:<div className="draw-panel stage-enter">
-          <div className="draw-intro"><div><h3>{!complete?'Let a card catch your attention.':!allRevealed?'Your five cards are waiting.':'A story, beginning to unfold.'}</h3><p>{!complete?'Choose any five. There is no wrong place to begin.':!allRevealed?'Tap each card to turn it over, one thought at a time.':'Follow the threads below. Keep what feels useful.'}</p></div><button className="text-button view-toggle" onClick={()=>setSimple(!simple)} disabled={reduced||webglFailed}>{canAnimate?'Use simple view':'Simple view'}<Icon name="cards" size={15}/></button></div>
-          {state.question&&<blockquote className="question-echo">“{state.question}”</blockquote>}
-          {canAnimate&&<CardScene deck={state.deck} selected={state.selected} revealed={state.revealed} onSelect={index=>dispatch({type:'select',index})} onReveal={id=>dispatch({type:'reveal',id})} onFailure={()=>setWebglFailed(true)}/>}
-          {!complete&&<><div className={`selection-strip ${!canAnimate?'large-strip':''}`} role="group" aria-label="Face-down deck. Choose five cards.">{state.deck.map((draw,index)=><button key={draw.id} className={`deck-choice ${state.selected.includes(index)?'chosen':''}`} aria-label={`Choose face-down card ${index+1}`} aria-pressed={state.selected.includes(index)} disabled={state.selected.includes(index)} onClick={()=>dispatch({type:'select',index})}><CardBack small/><span>{String(index+1).padStart(2,'0')}</span>{state.selected.includes(index)&&<Icon name="check" size={17}/>}</button>)}</div><p className="deck-hint">SCROLL TO EXPLORE THE DECK <span>↔</span> {78-state.selected.length} CARDS REMAINING</p></>}
-          <div className={`selected-spread ${complete?'ready-spread':''}`} role="group" aria-label="Your five-card spread">{positions.map((position,i)=>{
-            const draw=draws[i],card=draw?cardById.get(draw.id):undefined,revealed=draw&&state.revealed.includes(draw.id);
-            return <div className="spread-slot" key={position.name}><span className="slot-number">0{i+1}</span><button disabled={!draw||!complete||!!revealed} onClick={()=>draw&&dispatch({type:'reveal',id:draw.id})} aria-label={revealed?`${card!.name}, ${draw.reversed?'reversed':'upright'}, ${position.label}`:complete?`Reveal ${position.label} card`:`${position.label}: ${draw?'card selected':'awaiting selection'}`} className={`spread-card ${revealed?'is-revealed':''} ${draw?'has-card':''}`}>
-              {revealed?<img src={card!.image} alt="" width="480" height="800" className={draw.reversed?'reversed':''}/>:draw?<CardBack/>:<Icon name="star" size={25}/>}</button><h4>{position.name}</h4>{revealed?<><p className="draw-card-name">{card!.name}</p><span className="orientation">{draw.reversed?'↧ REVERSED':'↟ UPRIGHT'}</span></>:<p>{complete?'Tap to reveal':draw?'Chosen for you':position.prompt}</p>}</div>;
-          })}</div>
-          <div className="draw-bottom"><p aria-live="polite">{!complete?`${state.selected.length} of 5 cards chosen`:!allRevealed?`${state.revealed.length} of 5 cards revealed`:'Your reading is ready below.'}</p>{complete&&!allRevealed&&<button className="button secondary" onClick={revealAll}>Reveal all five <Icon name="star" size={16}/></button>}{allRevealed&&<button className="button primary" onClick={()=>results.current?.scrollIntoView({behavior:reduced?'instant':'smooth'})}>Explore your reading <Icon name="arrow" size={16}/></button>}<button className="text-button muted" onClick={()=>setResetOpen(true)}>Start again</button></div>
-          {resetOpen&&<div className="reset-panel" role="group" aria-label="Start a new reading"><p>Let go of this reading and clear your question?</p><button className="button secondary" onClick={reset}>Start a new reading</button><button className="text-button" onClick={()=>setResetOpen(false)}>Keep this reading</button></div>}
-          {webglFailed&&<p className="small muted">The illustrated card view is active. You can continue choosing and revealing normally.</p>}
-        </div>}
-        {storageError&&<p className="notice" role="status">Your browser couldn’t save this reading. You can continue here, but progress may be lost when you leave.</p>}
-        <div className="table-footer"><span><Icon name="moon" size={13}/> A MOMENT OF REFLECTION, NOT A FIXED FUTURE.</span><span>RIDER–WAITE–SMITH · 78 CARDS</span></div>
-      </div>
-    </section>
-    {allRevealed&&<section className="reading-results section-width stage-enter" ref={results} tabIndex={-1}>
-      <span className="eyebrow">02 / YOUR READING</span><h2>The threads <em>between the cards.</em></h2>
-      <div className="synthesis"><Icon name="sun" size={35}/><div><span className="eyebrow">THE STORY OF YOUR SPREAD</span><p>{summarizeReading(draws)}</p></div></div>
-      <div className="connections-grid">{connections.map((connection,i)=><article className="connection-card" key={connection.ids.join('-')}><span className="connection-number">0{i+1} <Icon name="star" size={14}/></span><span className="eyebrow">{connection.kind==='bridge'?'MAJOR MEETS MINOR':connection.kind==='tension'?'A USEFUL TENSION':connection.kind==='resonance'?'A SHARED THREAD':'ACROSS THE SPREAD'}</span><h3>{connection.title}</h3><p>{connection.text}</p></article>)}</div>
-      <div className="individual-readings">{draws.map((draw,i)=>{
-        const card=cardById.get(draw.id)!,meaning=meaningFor(draw);
-        return <article className="individual-reading" key={draw.id}><div className="reading-image"><img src={card.image} alt={`${card.name}, ${draw.reversed?'reversed':'upright'}`} width="480" height="800" className={draw.reversed?'reversed':''}/></div><div className="reading-copy"><span className="eyebrow">0{i+1} / {positions[i].label.toUpperCase()} <span className="reading-orientation">{draw.reversed?'REVERSED':'UPRIGHT'}</span></span><h3>{card.name}</h3><div className="keywords">{meaning.keywords.map(keyword=><span key={keyword}>{keyword}</span>)}</div><p className="position-context">{positions[i].context}, this card asks you to consider {meaning.keywords[0].toLowerCase()}.</p><p>{meaning.text}</p><div className="practical-note"><Icon name="star" size={16}/><p><strong>A thought to take with you</strong>{meaning.advice}</p></div><details className="opposite-meaning"><summary>Explore the {draw.reversed?'upright':'reversed'} meaning</summary><p>{(draw.reversed?card.upright:card.reversed).text}</p></details></div></article>;
-      })}</div><div className="closing-note"><span>✧</span><h3>The cards offer a perspective.<br/><em>The next step is yours.</em></h3><button className="text-button" onClick={()=>{setResetOpen(true);ritual.current?.scrollIntoView({behavior:reduced?'instant':'smooth'});}}>Begin another reading <Icon name="arrow" size={17}/></button></div>
-    </section>}
-
-    <section className="learn-section section-width" id="about"><div className="section-heading"><div><span className="eyebrow">{allRevealed?'03':'02'} / LEARN THE LANGUAGE</span><h2>Every card holds <em>a story.</em></h2></div><Link href="/cards/" className="text-button">Explore all 78 cards <Icon name="arrow" size={17}/></Link></div><div className="learn-grid"><Link href="/cards/?arcana=major" className="learn-card major-learn"><div className="learn-symbol"><Icon name="sun" size={51}/></div><span className="eyebrow">22 CARDS · THE LARGER PICTURE</span><h3>The Major Arcana</h3><p>The turning points. The lessons. The experiences that shape who you’re becoming.</p><span className="learn-link">Meet the archetypes <Icon name="arrow" size={18}/></span></Link><Link href="/cards/?arcana=minor" className="learn-card minor-learn"><div className="suit-symbols"><span>♧</span><span>♜</span><span>⚔</span><span>◇</span></div><span className="eyebrow">56 CARDS · THE EVERYDAY DETAILS</span><h3>The Minor Arcana</h3><p>Our feelings, ideas, ambitions, and earthly lives. Four suits, a world of small revelations.</p><span className="learn-link">Discover the four suits <Icon name="arrow" size={18}/></span></Link><article className="learn-card reflection-learn"><Icon name="moon" size={35}/><span className="eyebrow">A NOTE ON READING</span><h3>A mirror,<br/><em>with many angles.</em></h3><p>Tarot makes space for a different question. You bring the meaning, the context, and the freedom to choose what comes next.</p><span className="reflection-signature">Stay curious. Stay your own.</span></article></div></section>
-  </main>;
+  const turn=()=>{
+    if(turnLock.current||!canTurn(state,stage,focus,busy)||!draw)return;
+    turnLock.current=true;setBusy(true);dispatch({type:'reveal',id:draw.id});audio.current?.chime(focus);
+  };
+  const skip=()=>{setSkipVersion(n=>n+1);setBusy(false);turnLock.current=false;if(stage==='gather')setStage('choose');};
+  const reset=()=>{
+    dispatch({type:'reset'});setStage('question');setFocus(0);setReport(false);setBusy(false);setResetOpen(false);turnLock.current=false;
+    history.replaceState(null,'',location.pathname);window.scrollTo(0,0);
+  };
+  const toggleSound=async()=>{
+    if(sound){setSound(false);return;}
+    try{audio.current??=new Ambience();await audio.current.resume();setSound(true);}
+    catch{setNotice('Sound is unavailable in this browser. The reading can continue silently.');}
+  };
+  const openReport=()=>{setReport(true);location.hash='reading';window.scrollTo(0,0);};
+  const labels={question:'BEFORE THE CARDS, A MOMENT FOR YOU',gather:'LET THE EVERYDAY FALL AWAY',choose:'FIVE CARDS. ONE THREAD.',reveal:`${String(focus+1).padStart(2,'0')} / ${positions[focus].label.toUpperCase()}`,complete:'YOUR CONSTELLATION IS COMPLETE'};
+  const headlines={question:<>What is calling for<br/><em>your attention?</em></>,gather:<>A little stillness.<br/><em>A space for possibility.</em></>,choose:<>Follow what<br/><em>draws you in.</em></>,reveal:positions[focus].name,complete:<>Five stories.<br/><em>One new perspective.</em></>};
+  return <>
+    {viewOnly?<><Header/><ReadingReport draws={draws} onRestart={()=>setResetOpen(true)}/><Footer/></>:<main id="main" className={`cinematic-world phase-${stage} ${hasScene&&sceneReady?'scene-present':'scene-fallback'}`} ref={root}>
+      <div className="celestial-backdrop" aria-hidden="true"><div className="nebula nebula-a"/><div className="nebula nebula-b"/><div className="starfield"/><div className="celestial-orbit orbit-outer"/><div className="celestial-orbit orbit-inner"/><div className="world-grain"/></div>
+      {hasScene&&<CardScene stage={stage} focus={focus} deck={state.deck} selected={state.selected} revealed={state.revealed} browse={browse} skipVersion={skipVersion} onFailure={()=>{setFailed(true);setSceneReady(false);}} onReady={()=>setSceneReady(true)}/>}
+      <header className="cinema-header"><Link href="/" className="cinema-wordmark" aria-label="Midnight Arcana"><Icon name="sun" size={26}/><span>MIDNIGHT <b>ARCANA</b></span></Link><div className="cinema-controls"><button onClick={toggleSound} aria-pressed={sound} aria-label={sound?'Mute ambience':'Enable ambience'} className="cinema-control"><span aria-hidden="true">{sound?'♫':'♪'}</span><span>Sound {sound?'on':'off'}</span></button><button onClick={()=>{setSimple(!simple);setSceneReady(false);}} aria-pressed={simple||reduced} disabled={reduced||failed} className="cinema-control"><Icon name="star" size={15}/><span>{reduced||failed?'Gentle mode':simple?'Full effects':'Reduce effects'}</span></button></div></header>
+      <section className="cinema-stage" aria-label="Tarot reading">
+        <div className="cinema-heading cinema-enter"><span className="eyebrow">{labels[stage]}</span><h1 ref={title} tabIndex={-1}>{headlines[stage]}</h1>{stage==='choose'&&<p>Choose five cards. There is no wrong place to begin.</p>}{stage==='reveal'&&<p>{positions[focus].prompt}</p>}</div>
+        {stage==='question'&&<form className="intention-form cinema-enter" onSubmit={e=>{e.preventDefault();begin();}}><label htmlFor="intention" className="sr-only">Your question, optional</label><textarea id="intention" rows={2} maxLength={300} value={state.question} onChange={e=>dispatch({type:'question',value:e.target.value})} placeholder="A question. A feeling. Something on your mind."/><span className="question-whisper">You can leave this blank. Your words stay with you.</span><button className="ritual-action" type="submit" disabled={!ready}>Let the cards speak <Icon name="arrow" size={18}/></button><label className="cinema-reversals"><input type="checkbox" checked={state.reversals} onChange={e=>dispatch({type:'reversals',value:e.target.checked})}/><span>Welcome reversed cards</span></label></form>}
+        {stage==='gather'&&<div className="gather-copy cinema-enter"><span className="gather-sigil" aria-hidden="true">✧</span><p>Hold your question lightly.</p><button className="cinema-subtle" onClick={skip}>Skip animation <Icon name="arrow" size={15}/></button></div>}
+        {stage==='choose'&&<div className="choose-interface"><div className="fan-window" style={{'--fan-count':pageSize} as React.CSSProperties} role="group" aria-label="Face-down deck">{state.deck.slice(browse,browse+pageSize).map((item,i)=>{const index=browse+i,chosen=state.selected.includes(index);return <button key={item.id} data-card-index={index} className={`fan-card ${chosen?'chosen':''}`} style={{'--fan-index':i,'--fan-curve':Math.pow(i-(pageSize-1)/2,2)*.8} as React.CSSProperties} onClick={()=>dispatch({type:'select',index})} aria-label={`Choose face-down card ${index+1}`} aria-pressed={chosen} disabled={chosen}><CardBack/>{chosen&&<Icon name="check" size={18}/>}<span className="fan-number">{String(index+1).padStart(2,'0')}</span></button>;})}</div><div className="deck-paging"><button onClick={()=>setBrowse(Math.max(0,browse-pageSize))} disabled={browse===0} aria-label="Previous cards">←</button><span>{browse+1}—{Math.min(browse+pageSize,78)} <i>/ 78</i></span><button onClick={()=>setBrowse(Math.min(78-pageSize,browse+pageSize))} disabled={browse>=78-pageSize} aria-label="Next cards">→</button></div><div className="constellation-progress" aria-label={`${state.selected.length} of 5 cards chosen`}>{positions.map((position,i)=><span className={i<state.selected.length?'lit':''} key={position.name}><b>✦</b><small>{i+1}</small></span>)}</div><p className="stage-announcement" aria-live="polite">{state.selected.length} of 5 cards chosen</p></div>}
+        {stage==='reveal'&&draw&&card&&<div className="reveal-interface"><button className={`focal-card ${revealed?'turned':''}`} onClick={turn} disabled={revealed||busy} aria-label={revealed?`${card.name}, ${draw.reversed?'reversed':'upright'}`:`Reveal ${positions[focus].label}`}><span className="focal-frame">{revealed?<img src={card.image} alt="" width="480" height="800" className={draw.reversed?'reversed':''}/>:<CardBack/>}</span></button><div className="reveal-caption" aria-live="polite">{revealed?<><span className="eyebrow">{draw.reversed?'↧ REVERSED':'↟ UPRIGHT'}</span><h2>{card.name}</h2><p>{meaningFor(draw).keywords.join(' · ')}</p></>:<p className="reveal-invitation">There is a story waiting on the other side.</p>}</div><div className="reveal-actions">{!revealed?<button className="ritual-action" onClick={turn}>Reveal this card <Icon name="star" size={16}/></button>:busy?<button className="cinema-subtle" onClick={skip}>Skip animation <Icon name="arrow" size={16}/></button>:<button className="ritual-action" onClick={takeNext}>{nextReveal(state,focus)<0?'Bring the story together':'Continue to the next card'} <Icon name="arrow" size={17}/></button>}</div><div className="reveal-steps" aria-label={`Card ${focus+1} of 5`}>{positions.map((p,i)=><span key={p.name} className={i===focus?'current':i<focus?'done':''}>✦</span>)}</div></div>}
+        {stage==='complete'&&<div className="completion-interface"><div className="final-tableau">{draws.map((item,i)=><div key={item.id} className="tableau-card"><span className="tableau-frame"><img src={cardById.get(item.id)!.image} alt={`${positions[i].label}: ${cardById.get(item.id)!.name}, ${item.reversed?'reversed':'upright'}`} width="480" height="800" className={item.reversed?'reversed':''}/></span><span>{positions[i].name}</span></div>)}</div>{state.question&&<blockquote className="completed-question">“{state.question}”</blockquote>}<div className="completion-actions"><button className="ritual-action" onClick={openReport}>Understand your reading <Icon name="arrow" size={17}/></button><Link className="cinema-subtle" href="/cards/">Discover the deck <Icon name="book" size={16}/></Link></div></div>}
+      </section>
+      <footer className="cinema-footer"><span className="journey-coordinate">{stage==='question'?'A MOMENT BETWEEN YOU & THE UNIVERSE':stage==='complete'?'THE NEXT STEP IS YOURS':`MIDNIGHT ARCANA · ${stage.toUpperCase()}`}</span><div className="cinema-footer-tools">{stage!=='question'&&<button className="cinema-subtle" onClick={()=>setResetOpen(true)}>Begin again</button>}<OfflineStatus/></div></footer>
+      {notice&&<div className="cinema-notice" role="status">{notice}<button aria-label="Dismiss notice" onClick={()=>setNotice('')}>×</button></div>}
+    </main>}
+    <dialog ref={restartDialog} className="info-dialog" aria-labelledby="restart-title" onClose={()=>setResetOpen(false)}><button className="icon-button dialog-close" aria-label="Keep this reading" onClick={()=>setResetOpen(false)}><Icon name="close"/></button><Icon name="moon" size={30}/><h2 id="restart-title">Make space for a new story?</h2><p>This clears your current cards and question.</p><button className="button primary" onClick={reset}>Begin again <Icon name="arrow" size={17}/></button><button className="text-button keep-reading" onClick={()=>setResetOpen(false)}>Keep this reading</button></dialog>
+  </>;
 }
