@@ -45,6 +45,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, [locale, ready]);
   useEffect(() => {
     if (!ready) return;
+    if (/^\/history\/[^/]+/.test(pathname)) return;
+    if (pathname === '/history' || pathname === '/history/') {
+      document.title = locale === 'en' ? 'History & Stories · Midnight Arcana' : '历史与故事 · 午夜塔罗';
+      document.querySelector('meta[name=description]')?.setAttribute('content', locale === 'en' ? 'Discover the history, art, and symbolism behind all 78 tarot cards.' : '探索78张塔罗牌背后的历史、艺术与象征。');
+      return;
+    }
     document.title =
       locale === "en"
         ? pathname.startsWith("/cards")

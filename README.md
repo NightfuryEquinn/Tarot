@@ -23,6 +23,14 @@ A celestial observatory for a personal reading: set an optional intention, start
 - Authored applications combine position roles, orientation-specific themes, and topic. Connections favor positional relevance, different themes, and wider coverage. Everything runs locally without an AI service.
 - Decorative ritual focus fading is removed. Navigation remains available, with restrained keyboard focus indicators. Library tiles align at their tops; credits links underline independently on hover.
 
+## History & Stories
+
+`/history/` introduces tarot's history with a timeline and a bilingual searchable directory. Each of the 78 cards has a static article at `/history/<card-id>/`, with historical context, artwork evolution, visual details, modern interpretation, and linked sources. Stories distinguish documented evidence from later symbolism and credit Pamela Colman Smith. The library's card dialog links to its article, and articles link back to the corresponding meaning through `/cards/?card=<card-id>`.
+
+The history content lives separately from reading interpretations in the `history-*.ts` data files. Full articles are passed only to their own pages; the directory receives teasers. Both languages and all article routes join the existing offline download. Reference websites themselves require a connection. Query and suit filters stay in the URL when opening an article and returning to the collection.
+
+`npm run check` now includes history content validation: complete bilingual coverage, unique teasers, usable source URLs, artwork, and article length. After building, run `node scripts/check-history.mjs --export` to check every history route in the static output and offline manifest. Actual browser layout and offline navigation require a connected browser for manual QA.
+
 ## Development
 
 Use Node.js 22.13+ or 24 and npm.

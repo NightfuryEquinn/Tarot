@@ -7,7 +7,7 @@
     "dev": "next dev --hostname 0.0.0.0",
     "build": "next build --webpack && node scripts/build-offline.mjs",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck"
+    "check": "npm run typecheck && node scripts/check-history.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.4",

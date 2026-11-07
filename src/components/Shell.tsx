@@ -28,7 +28,7 @@ export function Brand() {
   );
 }
 export function Header() {
-  const { copy } = useLanguage();
+  const { copy, t } = useLanguage();
   return (
     <>
       <CelestialBackdrop />
@@ -37,7 +37,7 @@ export function Header() {
       >
         <Brand />
         <nav
-          className="order-3 flex w-full justify-center gap-7 sm:order-none sm:w-auto"
+          className="order-3 flex w-full flex-wrap justify-center gap-x-5 gap-y-1 sm:order-none sm:w-auto"
           aria-label={copy("Main navigation")}
         >
           <Link className={textButton} href="/">
@@ -47,6 +47,7 @@ export function Header() {
             {copy("The deck")}
             <span className="text-sm text-gold">78</span>
           </Link>
+          <Link className={textButton} href="/history/">{t('History & Stories', '历史与故事')}</Link>
         </nav>
         <LanguageSwitch />
       </header>

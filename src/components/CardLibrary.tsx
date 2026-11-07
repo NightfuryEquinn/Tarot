@@ -34,6 +34,11 @@ export function CardLibrary() {
   useEffect(() => {
     const arcana = new URLSearchParams(location.search).get("arcana");
     if (arcana === "major" || arcana === "minor") setCategory(arcana);
+    const requested = new URLSearchParams(location.search).get('card');
+    if (requested && localizedCards.en.some(c => c.id === requested)) {
+      setCardId(requested);
+      if (!dialog.current?.open) dialog.current?.showModal();
+    }
   }, []);
   const filtered = useMemo(
     () =>
@@ -293,6 +298,7 @@ export function CardLibrary() {
                   : `${t("MINOR ARCANA", "小阿尔卡那")} · ${locale === "en" ? card.suit?.toUpperCase() : suitNames[card.suit!]}`}
               </span>
               <h2 id="card-details-title">{card.name}</h2>
+              <Link href={`/history/${card.id}/`} className="inline-flex min-h-11 items-center py-2 text-sm text-gold hover:underline">{t('Discover this card’s story →', '探索这张牌的故事 →')}</Link>
               <div
                 className={
                   "my-5 flex gap-2 [&>button]:min-h-11 [&>button]:rounded-sm [&>button]:border [&>button]:px-5 [&>button]:text-sm"
