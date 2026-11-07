@@ -1,4 +1,5 @@
 "use client";
+import { type SpreadContext } from '@/lib/spreads';
 import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import { animate, createScope, stagger } from "animejs";
@@ -19,19 +20,21 @@ import {
   type DrawnCard,
 } from "@/lib/reading";
 export function ReadingReport({
+  spread={},
   draws,
   question = "",
   reduced = true,
   onRestart,
 }: {
+  spread?: SpreadContext;
   draws: DrawnCard[];
   question?: string;
   reduced?: boolean;
   onRestart: () => void;
 }) {
   const { locale, t, copy } = useLanguage(),
-    positions = getPositions(locale);
-  const reading = useMemo(() => buildReading(draws, question, locale), [draws, question, locale]);
+    positions = getPositions(locale,spread);
+  const reading = useMemo(() => buildReading(draws, question, locale, spread), [draws, question, locale, spread]);
   const { connections } = reading;
   const root = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -64,7 +67,7 @@ export function ReadingReport({
           {question.trim() && <blockquote className="break-words font-display text-2xl italic text-parchment">“{question}”</blockquote>}
           <p className="text-sm text-gold">{t("Reading focus", "解读视角")}: {reading.context.name}</p>
           <p className="text-sm leading-7 text-muted">
-            {t("Your question offers a lens for reflection. Read each card through its position and orientation, then consider how the cards respond to one another.", "你的问题为思考提供视角。先结合牌位与正逆位理解每张牌，再看它们如何彼此回应。")}
+            {t("Your question gives a focus for this reading. Read each card through its position and whether it is upright or reversed, then see how the cards connect.", "你的问题为这次解读提供了重心。先结合牌位与正逆位理解每张牌，再看看牌与牌之间如何呼应。")}
           </p>
         </div>
         <div
@@ -79,6 +82,13 @@ export function ReadingReport({
             <p>{reading.summary}</p>
           </div>
         </div>
+        {reading.quarters.length > 0 && <section className="my-8 grid gap-5 md:grid-cols-2" aria-label={t('The year in four chapters','一年的四个阶段')}>
+          {reading.quarters.map(q=><article key={q.title} className="rounded border border-line bg-panel/50 p-5">
+            <h3 className="font-display text-2xl text-gold">{q.title}</h3>
+            <p className="mt-3 text-sm leading-7 text-muted">{q.text}</p>
+            {q.themes.length>0&&<p className="mt-3 text-sm text-gold">{t('Recurring themes','反复出现的主题')}: {q.themes.join(' · ')}</p>}
+          </article>)}
+        </section>}
         <div className={"mt-8 grid gap-6 lg:grid-cols-3"}>
           {connections.map((connection, i) => (
             <article
@@ -91,7 +101,7 @@ export function ReadingReport({
               <span
                 className={"mb-5 flex justify-between text-sm text-gold/65"}
               >
-                0{i + 1} <Icon name="star" size={14} />
+                {String(i + 1).padStart(2,'0')} <Icon name="star" size={14} />
               </span>
               {connection.kind !== "tension" && connection.relations.includes("tension") && (
                 <span className="mt-2 block text-sm text-gold">{copy("A USEFUL TENSION")}</span>
@@ -141,7 +151,7 @@ export function ReadingReport({
                   }
                 >
                   <span className={eyebrow}>
-                    0{i + 1} / {positions[i].label.toUpperCase()}{" "}
+                    {String(i + 1).padStart(2,'0')} / {positions[i].label.toUpperCase()}{" "}
                     <span className={"ml-3 inline-block text-sm text-muted"}>
                       {draw.reversed ? copy("REVERSED") : copy("UPRIGHT")}
                     </span>
@@ -328,7 +338,7 @@ export function ReadingReport({
           <summary>{copy("How to read your spread")}</summary>
           <p>
             {copy(
-              "Major Arcana describe larger themes; Minor Arcana bring them into everyday life. The position of each card adds context. Reversals can suggest an inward, blocked, excessive, or releasing expression. Read the connections together, and keep the perspective that helps you.",
+              "Major Arcana cards point to bigger life themes; Minor Arcana cards show how those themes play out in everyday life. Each position gives the card a specific question to answer. Reversed cards suggest energy that is turned inward, delayed, pushed too far, or ready to let go. Read the cards together and keep what helps you.",
             )}
           </p>
         </details>

@@ -28,7 +28,11 @@ import { LanguageSwitch, useLanguage } from "./Language";
 import { OracleArtwork } from "./OracleArtwork";
 import { RevealCard } from "./RevealCard";
 import { ShuffleDeck } from "./ShuffleDeck";
-import { isRitualFocused, useSecondaryFade } from "@/lib/focus";
+import { spreadCount, spreadIds, spreadName, type SpreadId } from "@/lib/spreads";
+import { SpreadDiagram } from "./SpreadDiagram";
+import { PositionGuide } from "./PositionGuide";
+import { Dropdown } from "./Dropdown";
+import type { ReadingTopic } from '@/lib/topics';
 import { CelestialBackdrop } from "./CelestialBackdrop";
 import {
   dialogStyle,
@@ -42,12 +46,13 @@ export { CardBack } from "./CardBack";
 const CelestialScene = dynamic(() => import("./CelestialScene"), {
   ssr: false,
 });
-const STORAGE_KEY = "midnight-arcana.reading.v1";
+const STORAGE_KEY = "midnight-arcana.reading.v2";
 
 export function TarotExperience() {
-  const { locale, t } = useLanguage(),
-    positions = getPositions(locale);
+  const { locale, t } = useLanguage();
   const [state, dispatch] = useReducer(readingReducer, emptyReading);
+  const positions = getPositions(locale,state);
+  const count=spreadCount(state.spreadId);
   const [stage, setStage] = useState<RitualStage>("question");
   const [focus, setFocus] = useState(0),
     [ready, setReady] = useState(false),
@@ -74,9 +79,8 @@ export function TarotExperience() {
     draw = draws[focus];
   const revealed = !!draw && state.revealed.includes(draw.id),
     card = draw ? getCard(draw.id, locale) : undefined;
-  const viewOnly = report && state.revealed.length === 5;
-  const focused = !viewOnly && isRitualFocused(stage, state.question);
-  useSecondaryFade(frame, focused, !hasMotion);
+  const viewOnly = report && state.revealed.length === count;
+  const focused = false;
   const finishIntro = useCallback(
     () => setStage((current) => (current === "gather" ? "choose" : current)),
     [],
@@ -88,14 +92,14 @@ export function TarotExperience() {
     media.addEventListener("change", sync);
     try {
       setSimple(localStorage.getItem("midnight-arcana.gentle") === "true");
-      const saved = restoreReading(localStorage.getItem(STORAGE_KEY));
+      const saved = restoreReading(localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem("midnight-arcana.reading.v1"));
       if (saved) {
         dispatch({ type: "restore", state: saved });
         const resumed = resumeRitual(saved);
         setStage(resumed.stage);
         setFocus(resumed.focus);
         if (
-          saved.revealed.length === 5 &&
+          saved.revealed.length === spreadCount(saved.spreadId) &&
           ["#reading", "#about"].includes(location.hash)
         )
           setReport(true);
@@ -119,7 +123,7 @@ export function TarotExperience() {
       }
   }, [state, ready]);
   useEffect(() => {
-    if (stage !== "choose" || state.selected.length !== 5) return;
+    if (stage !== "choose" || state.selected.length !== count) return;
     const timer = setTimeout(
       () => {
         const next = resumeRitual(state);
@@ -164,7 +168,7 @@ export function TarotExperience() {
   }, [stage, focus, viewOnly, ready, hasMotion]);
   useEffect(() => {
     const change = () => {
-      if (state.revealed.length === 5)
+      if (state.revealed.length === count)
         setReport(["#reading", "#about"].includes(location.hash));
     };
     window.addEventListener("hashchange", change);
@@ -294,7 +298,7 @@ export function TarotExperience() {
       {viewOnly ? (
         <>
           <Header />
-          <ReadingReport draws={draws} question={state.question} reduced={!hasMotion} onRestart={() => setResetOpen(true)} />
+          <ReadingReport spread={state} draws={draws} question={state.question} reduced={!hasMotion} onRestart={() => setResetOpen(true)} />
           <Footer />
         </>
       ) : (
@@ -312,10 +316,10 @@ export function TarotExperience() {
                 href="#ritual"
                 className="relative flex min-h-11 items-center text-sm text-gold after:absolute after:bottom-0 after:left-1/2 after:size-1 after:-translate-x-1/2 after:rounded-full after:bg-gold"
               >
-                {t("The ritual", "塔罗仪式")}
+                {t("The ritual", "开始解读")}
               </a>
               <Link href="/cards/" className={textButton}>
-                {t("The deck", "塔罗牌库")}
+                {t("The deck", "牌库")}
                 <span className="text-sm text-gold/65">78</span>
               </Link>
             </nav>
@@ -444,8 +448,8 @@ export function TarotExperience() {
                       )}
                       <br />
                       {t(
-                        "Five cards. One new perspective.",
-                        "五张牌，一个全新的视角。",
+                        "Your cards. A new perspective.",
+                        "你的牌阵，一个全新的视角。",
                       )}
                     </p>
                   </div>
@@ -490,7 +494,7 @@ export function TarotExperience() {
                           "A question. A feeling. Something on your mind.",
                           "一个问题，一种感受，一件心事。",
                         )}
-                        className="block min-h-24 w-full resize-y rounded-sm border border-gold/25 bg-ink/45 p-4 text-base leading-6 text-parchment placeholder:text-muted/65 hover:border-gold/45 focus:border-gold/70 focus:outline-none focus:ring-1 focus:ring-gold/40"
+                        className="block h-24 w-full resize-none overflow-y-auto rounded-sm border border-gold/25 bg-ink/45 p-4 text-base leading-6 text-parchment placeholder:text-muted/65 hover:border-gold/45 focus-visible:outline focus-visible:outline-gold"
                       />
                     </div>
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -505,6 +509,13 @@ export function TarotExperience() {
                       document.getElementById("intention")?.focus();
                     }}>{t("Clear question", "清空问题")}</button>}
                     </div>
+                    <Dropdown<ReadingTopic | 'auto'> label={t("Reading topic", "\u89e3\u8bfb\u4e3b\u9898")}
+                      value={state.topic??'auto'} onChange={value=>dispatch({type:'topic',value})}
+                      options={([['auto','Automatic','自动识别'],['general','General','综合'],['relationships','Relationships','情感与关系'],['work','Work & study','工作与学业'],['finances','Money & resources','金钱与资源'],['growth','Personal growth','个人成长']] as const).map(([value,en,zh])=>({value,label:t(en,zh)}))} />
+                    <Dropdown<SpreadId> label={t("Choose a spread", "\u9009\u62e9\u724c\u9635")}
+                      value={state.spreadId} onChange={value=>dispatch({type:'spread',value})}
+                      options={spreadIds.map(value=>({value,label:`${spreadName(value,locale)} \u00b7 ${spreadCount(value)}`}))} />
+                    <PositionGuide spread={state} />
                     <div className="my-5 flex flex-wrap items-center justify-between gap-3">
                       <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-muted">
                         <input
@@ -521,7 +532,7 @@ export function TarotExperience() {
                         <span>{t("Welcome reversed cards", "包含逆位牌")}</span>
                       </label>
                       <span className="text-sm text-muted/70">
-                        {t("5 cards · Your own pace", "5 张牌 · 跟随你的节奏")}
+                        {t(`${count} cards · Your own pace`, `${count} 张牌 · 跟随你的节奏`)}
                       </span>
                     </div>
                     <button
@@ -565,7 +576,7 @@ export function TarotExperience() {
                 <ShuffleDeck reduced={!hasMotion} reversals={state.reversals} />
                 {state.question.trim() && <blockquote className="mb-6 break-words font-display text-2xl italic text-parchment">“{state.question}”</blockquote>}
                 <p id="shuffle-instruction" className="mx-auto mb-6 max-w-md text-base leading-7 text-muted">
-                  {t("Repeat your questions a few times before stopping the shuffle.", "停止洗牌前，请在心中重复你的问题几次。")}
+                  {t("Repeat your question a few times before stopping the shuffle.", "停止洗牌前，请在心中重复你的问题几次。")}
                 </p>
                 <button className={primary} onClick={stopShuffle} aria-describedby="shuffle-instruction">
                   {t("Stop shuffle", "停止洗牌")}<Icon name="cards" size={18} />
@@ -580,8 +591,8 @@ export function TarotExperience() {
                     {stage === "gather"
                       ? t("THE DECK FINDS ITS RHYTHM", "牌在流转，心渐安定")
                       : t(
-                          "FIVE CARDS. ONE THREAD.",
-                          "五张牌，一条相连的线索。",
+                          `${count} CARDS. ONE THREAD.`,
+                          `${count} 张牌，串起你的思绪。`,
                         )}
                   </p>
                   <h1
@@ -607,7 +618,7 @@ export function TarotExperience() {
                     )}
                   </p>
                 </div>
-                <DealerTable
+                <DealerTable spread={state}
                   deck={state.deck}
                   selected={state.selected}
                   active={stage === "choose"}
@@ -739,8 +750,8 @@ export function TarotExperience() {
                     <div
                       className="mt-7 flex justify-center gap-4 sm:justify-start"
                       aria-label={t(
-                        `Card ${focus + 1} of 5`,
-                        `第 ${focus + 1} / 5 张牌`,
+                        `Card ${focus + 1} of ${count}`,
+                        `第 ${focus + 1} / ${count} 张牌`,
                       )}
                     >
                       {positions.map((_, i) => (
@@ -773,37 +784,14 @@ export function TarotExperience() {
                     tabIndex={-1}
                     className="mt-4 font-display text-4xl leading-[1.05] outline-none sm:text-6xl"
                   >
-                    {t("Five stories.", "五个故事。")}
+                    {t(`${count} stories.`, `${count} 个故事。`)}
                     <br />
                     <em className="text-gold">
                       {t("One new perspective.", "一个全新的视角。")}
                     </em>
                   </h1>
                 </div>
-                <div className="relative mx-auto my-10 grid max-w-4xl grid-cols-5 gap-2 sm:gap-5">
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent"
-                  />
-                  {draws.map((item, i) => (
-                    <div
-                      key={item.id}
-                      data-spread-card
-                      className="relative min-w-0"
-                    >
-                      <img
-                        src={getCard(item.id, locale).image}
-                        alt={`${positions[i].label}: ${getCard(item.id, locale).name}, ${item.reversed ? t("reversed", "逆位") : t("upright", "正位")}`}
-                        width="480"
-                        height="800"
-                        className={`aspect-[3/5] w-full rounded-sm border border-gold/30 object-cover shadow-xl ${item.reversed ? "rotate-180" : ""}`}
-                      />
-                      <span className="mt-3 block text-sm leading-5 text-muted [overflow-wrap:anywhere]">
-                        {positions[i].name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <SpreadDiagram spread={state} draws={draws} />
                 {state.question && (
                   <blockquote className="mx-auto mb-7 max-w-xl break-words font-display text-2xl italic text-muted">
                     “{state.question}”

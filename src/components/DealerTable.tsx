@@ -1,4 +1,5 @@
 "use client";
+import { type SpreadContext } from '@/lib/spreads';
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { animate, createScope, stagger } from "animejs";
 import { adjacentCard, fanColumns, fanLayout } from "@/lib/dealer";
@@ -9,6 +10,7 @@ import { Icon } from "./Icon";
 import { eyebrow } from "./ui";
 
 type Props = {
+  spread?: SpreadContext;
   deck: DrawnCard[];
   selected: number[];
   active: boolean;
@@ -17,6 +19,7 @@ type Props = {
   onPick: (index: number) => void;
 };
 export function DealerTable({
+  spread={},
   deck,
   selected,
   active,
@@ -25,7 +28,7 @@ export function DealerTable({
   onPick,
 }: Props) {
   const { t, locale } = useLanguage();
-  const positions = getPositions(locale);
+  const positions = getPositions(locale,spread);
   const [size, setSize] = useState({ width: 320, height: 240 }),
     [keyboard, setKeyboard] = useState(0);
   const columns = fanColumns(size.width);
@@ -35,6 +38,7 @@ export function DealerTable({
   const keyboardPick = useRef(false),
     finish = useRef(onDealComplete);
   finish.current = onDealComplete;
+  useEffect(() => { root.current?.querySelector(`[data-tray-slot="${selected.length-1}"]`)?.scrollIntoView?.({block:'nearest',inline:'nearest'}); },[selected.length]);
   const first = deck.findIndex((_, i) => !selected.includes(i));
   const tabStop = selected.includes(keyboard) ? first : keyboard;
   useEffect(() => {
@@ -77,7 +81,7 @@ export function DealerTable({
     };
   }, [active, reduced]);
   useEffect(() => {
-    if (keyboardPick.current && first >= 0 && selected.length < 5) {
+    if (keyboardPick.current && first >= 0 && selected.length < positions.length) {
       keyboardPick.current = false;
       setKeyboard(first);
       buttons.current[first]?.focus({ preventScroll: true });
@@ -172,7 +176,7 @@ export function DealerTable({
                       `选择第${index + 1}张牌`,
                     )
               }
-              disabled={!active || chosen || selected.length === 5}
+              disabled={!active || chosen || selected.length === positions.length}
               tabIndex={index === tabStop ? 0 : -1}
               onClick={(event) => {
                 keyboardPick.current = event.detail === 0;
@@ -203,7 +207,7 @@ export function DealerTable({
               }}
             >
               <span className="pointer-events-none absolute left-1/2 top-[var(--card-y)] h-[var(--card-height)] w-[var(--card-width)] -translate-x-1/2 -translate-y-1/2 rotate-[var(--card-angle)] rounded-sm">
-                <span className={`block size-full rounded-sm ${chosen ? "opacity-15" : "group-hover:brightness-125 group-focus-visible:brightness-125"}`}>
+                <span className={`block size-full rounded-sm ${chosen ? "opacity-15" : "group-hover:brightness-125"}`}>
                   <span data-deck-art className="block size-full rounded-sm shadow-lg">
                     <CardBack compact />
                   </span>
@@ -218,18 +222,18 @@ export function DealerTable({
         <span className={eyebrow}>{t("YOUR SPREAD", "你的牌阵")}</span>
         <p aria-live="polite" className="text-sm text-gold">
           {t(
-            `${selected.length} of 5 chosen`,
-            `已选择 ${selected.length} / 5 张牌`,
+            `${selected.length} of ${positions.length} chosen`,
+            `已选择 ${selected.length} / ${positions.length} 张牌`,
           )}
         </p>
       </div>
       <div
         role="group"
-        aria-label={t("Your five chosen cards", "你选择的五张牌")}
-        className="mt-2 grid shrink-0 grid-cols-5 gap-2 sm:gap-5"
+        aria-label={t("Your chosen cards", "你选择的牌")}
+        className="mt-2 flex shrink-0 gap-3 overflow-x-auto pb-2"
       >
         {positions.map((position, i) => (
-          <div key={i} className="min-w-0 text-center">
+          <div key={i} data-tray-slot={i} className="min-w-20 flex-1 text-center">
             <div
               className={`mx-auto flex aspect-[3/4] h-[clamp(1.25rem,6dvh,3rem)] items-center justify-center rounded-sm border ${selected[i] !== undefined ? "border-transparent" : "border-dashed border-gold/25 bg-gold/[0.025]"}`}
             >

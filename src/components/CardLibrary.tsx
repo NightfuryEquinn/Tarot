@@ -115,7 +115,7 @@ export function CardLibrary() {
         </div>
         <label
           className={
-            "flex min-h-12 items-center gap-3 rounded-sm border border-line bg-ink/70 px-4 text-muted focus-within:border-gold/60 [&>input]:min-w-0 [&>input]:flex-1 [&>input]:bg-transparent [&>input]:py-3 [&>input]:text-base sm:[&>input]:text-sm [&>input]:outline-none xl:w-72"
+            "flex min-h-12 items-center gap-3 rounded-sm border border-line bg-ink/70 px-4 text-muted [&>input]:min-w-0 [&>input]:flex-1 [&>input]:bg-transparent [&>input]:py-3 [&>input]:text-base sm:[&>input]:text-sm [&>input]:outline-none xl:w-72"
           }
         >
           <Icon name="search" size={18} />
@@ -151,7 +151,7 @@ export function CardLibrary() {
         {filtered.map((c) => (
           <button
             className={
-              "group min-w-0 text-left [&>h2]:mt-2 [&>h2]:font-display [&>h2]:text-2xl [&>h2]:leading-tight [&>p]:mt-2 [&>p]:text-sm [&>p]:leading-5 [&>p]:text-muted"
+              "group flex min-w-0 flex-col items-stretch justify-start text-left [&>h2]:mt-2 [&>h2]:font-display [&>h2]:text-2xl [&>h2]:leading-tight [&>p]:mt-2 [&>p]:text-sm [&>p]:leading-5 [&>p]:text-muted"
             }
             key={c.id}
             onClick={() => open(c)}
@@ -228,7 +228,7 @@ export function CardLibrary() {
           </p>
           <div
             className={
-              "mt-5 flex flex-wrap gap-x-7 gap-y-2 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center [&>a]:gap-2 [&>a]:text-sm [&>a]:text-gold hover:[&>a]:underline"
+              "mt-5 flex flex-wrap gap-x-7 gap-y-2 [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center [&>a]:gap-2 [&>a]:text-sm [&>a]:text-gold [&>a:hover]:underline"
             }
           >
             <a

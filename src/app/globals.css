@@ -59,7 +59,7 @@
     @apply cursor-default;
   }
   :focus-visible {
-    @apply outline-2 outline-offset-4 outline-gold;
+    @apply outline-1 outline-offset-2 outline-gold;
   }
   ::selection {
     @apply bg-gold/30 text-white;
@@ -67,4 +67,12 @@
   dialog {
     @apply m-auto;
   }
+}
+
+@media (min-width: 768px) {
+  .spread-traditional { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2rem; }
+  .spread-traditional .spread-position { grid-column: var(--spread-x); grid-row: var(--spread-y); }
+  .spread-crossing { z-index: 1; transform: translateY(20%); }
+  .spread-crossing > div { transform: rotate(90deg) scale(.8); }
+  .spread-crossing figcaption { transform: translateY(1rem); }
 }

@@ -58,8 +58,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       ?.setAttribute(
         "content",
         locale === "en"
-          ? "A five-card tarot reading with all 78 cards, upright and reversed meanings, and connections. Available offline."
-          : "通过五张塔罗牌，发现新的视角。探索全部78张牌的正逆位含义及牌与牌之间的联结，支持离线使用。",
+          ? "Explore three-card, five-card, Celtic Cross and annual tarot spreads with all 78 cards. Available offline."
+          : "从三张牌、五张牌、凯尔特十字或年度牌阵中获得启发。探索全部78张牌的正逆位含义与相互联系，支持离线使用。",
       );
   }, [locale, pathname, ready]);
   return (

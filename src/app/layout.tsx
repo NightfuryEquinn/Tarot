@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: "%s · Midnight Arcana",
   },
   description:
-    "Find a different perspective in a five-card tarot reading. Discover all 78 cards, upright and reversed meanings, and the threads connecting them. Available offline.",
+    "Find a different perspective with three-card, five-card, Celtic Cross and annual tarot spreads. Discover all 78 cards, upright and reversed meanings, and the threads connecting them. Available offline.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
