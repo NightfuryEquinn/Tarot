@@ -29,6 +29,8 @@ export default function CelestialScene({
       failure.current();
       return;
     }
+    // Dark color-scheme compositing hides a transparent canvas. Light compositing keeps the sky visible.
+    renderer.domElement.style.colorScheme = "only light";
     container.appendChild(renderer.domElement);
     const mobile = matchMedia("(pointer: coarse)").matches || innerWidth < 768;
     const ratio = Math.min(devicePixelRatio, mobile ? 1 : 1.4);
@@ -106,6 +108,7 @@ export default function CelestialScene({
     scene.add(stars);
     resources.push(geometry, material);
     let live = true,
+      disposing = false,
       frame = 0,
       previous = 0,
       lastRender = 0,
@@ -162,6 +165,7 @@ export default function CelestialScene({
     };
     const lost = (event: Event) => {
       event.preventDefault();
+      if (disposing) return;
       cancelAnimationFrame(frame);
       failure.current();
     };
@@ -169,6 +173,7 @@ export default function CelestialScene({
     document.addEventListener("visibilitychange", visibility);
     visibility();
     return () => {
+      disposing = true;
       live = false;
       cancelAnimationFrame(frame);
       observer.disconnect();

@@ -7,6 +7,7 @@ export function OracleArtwork({ reduced }: { reduced: boolean }) {
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (reduced || !root.current) return;
+    let stopListening = () => {};
     const scope = createScope({ root }).add(() => {
       animate("[data-oracle-card]", {
         opacity: [0, 1],
@@ -15,21 +16,33 @@ export function OracleArtwork({ reduced }: { reduced: boolean }) {
         delay: stagger(160),
         ease: "out(4)",
       });
-      animate("[data-orbit]", {
+      const orbit = animate("[data-orbit]", {
         rotate: [0, 360],
         duration: 180000,
         loop: true,
         ease: "linear",
       });
-      animate("[data-oracle-float]", {
+      const float = animate("[data-oracle-float]", {
         translateY: [-5, 5],
         duration: 3800,
         alternate: true,
         loop: true,
         ease: "inOutSine",
       });
+      const loops = [orbit, float];
+      const visibility = () => {
+        if (document.hidden) loops.forEach((motion) => motion.pause());
+        else loops.forEach((motion) => motion.resume());
+      };
+      visibility();
+      document.addEventListener("visibilitychange", visibility);
+      stopListening = () =>
+        document.removeEventListener("visibilitychange", visibility);
     });
-    return () => scope.revert();
+    return () => {
+      stopListening();
+      scope.revert();
+    };
   }, [reduced]);
   return (
     <div
