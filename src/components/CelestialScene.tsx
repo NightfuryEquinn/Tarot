@@ -21,7 +21,7 @@ export default function CelestialScene({
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({
-        alpha: true,
+        alpha: false,
         antialias: false,
         powerPreference: "low-power",
       });
@@ -29,13 +29,13 @@ export default function CelestialScene({
       failure.current();
       return;
     }
-    // Dark color-scheme compositing hides a transparent canvas. Light compositing keeps the sky visible.
-    renderer.domElement.style.colorScheme = "only light";
     container.appendChild(renderer.domElement);
     const mobile = matchMedia("(pointer: coarse)").matches || innerWidth < 768;
     const ratio = Math.min(devicePixelRatio, mobile ? 1 : 1.4);
     renderer.setPixelRatio(ratio);
-    renderer.setClearColor(0x090e19, 0);
+    // An opaque ink clear keeps the mist and stars in the color buffer.
+    // A transparent canvas is composited away when the browser is in dark mode.
+    renderer.setClearColor(0x090e19, 1);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 50);

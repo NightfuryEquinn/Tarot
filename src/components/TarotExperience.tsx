@@ -74,7 +74,9 @@ export function TarotExperience() {
   const audio = useRef<Ambience | null>(null),
     turnLock = useRef(false),
     shuffleLock = useRef(false);
-  const hasMotion = ready && !reduced && !simple;
+  // The moon control only drops the WebGL sky. Card motion follows the OS reduced-motion setting.
+  const cardMotion = ready && !reduced;
+  const hasMotion = cardMotion && !simple;
   const draws = state.selected.map((index) => state.deck[index]),
     draw = draws[focus];
   const revealed = !!draw && state.revealed.includes(draw.id),
@@ -130,10 +132,10 @@ export function TarotExperience() {
         setFocus(next.focus);
         setStage(next.stage);
       },
-      hasMotion ? 450 : 0,
+      cardMotion ? 450 : 0,
     );
     return () => clearTimeout(timer);
-  }, [stage, state, hasMotion]);
+  }, [stage, state, cardMotion]);
   useEffect(() => {
     if (!busy) return;
     const timer = setTimeout(
@@ -141,17 +143,17 @@ export function TarotExperience() {
         setBusy(false);
         turnLock.current = false;
       },
-      hasMotion ? 900 : 0,
+      cardMotion ? 900 : 0,
     );
     return () => clearTimeout(timer);
-  }, [busy, hasMotion]);
+  }, [busy, cardMotion]);
   useEffect(() => {
     if (!ready) return;
     if (stage !== "question") {
       title.current?.focus({ preventScroll: true });
       window.scrollTo({ top: 0, behavior: "instant" });
     }
-    if (!hasMotion || !root.current) return;
+    if (!cardMotion || !root.current) return;
     const scope = createScope({ root }).add(() => {
       animate("[data-enter]", {
         opacity: [0, 1],
@@ -165,7 +167,7 @@ export function TarotExperience() {
       });
     });
     return () => scope.revert();
-  }, [stage, focus, viewOnly, ready, hasMotion]);
+  }, [stage, focus, viewOnly, ready, cardMotion]);
   useEffect(() => {
     const change = () => {
       if (state.revealed.length === count)
@@ -298,7 +300,7 @@ export function TarotExperience() {
       {viewOnly ? (
         <>
           <Header />
-          <ReadingReport spread={state} draws={draws} question={state.question} reduced={!hasMotion} onRestart={() => setResetOpen(true)} />
+          <ReadingReport spread={state} draws={draws} question={state.question} reduced={!cardMotion} onRestart={() => setResetOpen(true)} />
           <Footer />
         </>
       ) : (
@@ -324,7 +326,7 @@ export function TarotExperience() {
               </Link>
             </nav>
             <div className="flex items-center gap-1 sm:gap-3">
-              <LanguageSwitch reduced={!hasMotion} />
+              <LanguageSwitch reduced={!cardMotion} />
               <button
                 onClick={toggleSound}
                 aria-pressed={sound}
@@ -454,7 +456,7 @@ export function TarotExperience() {
                     </p>
                   </div>
                   <div data-ritual-secondary className="row-span-2 mx-auto my-4 w-[min(100%,280px)] sm:w-[min(100%,360px)] lg:my-0 lg:w-full">
-                    <OracleArtwork reduced={!hasMotion || focused} />
+                    <OracleArtwork reduced={!cardMotion || focused} />
                     <p className="-mt-1 hidden text-center text-sm tracking-[.12em] text-gold/65 lg:block">
                       {t("AS ABOVE, SO WITHIN", "仰望星空，照见内心")}
                     </p>
@@ -573,7 +575,7 @@ export function TarotExperience() {
                     {t("Find your rhythm.", "跟随你的节奏。")}
                   </h1>
                 </div>
-                <ShuffleDeck reduced={!hasMotion} reversals={state.reversals} />
+                <ShuffleDeck reduced={!cardMotion} reversals={state.reversals} />
                 {state.question.trim() && <blockquote className="mb-6 break-words font-display text-2xl italic text-parchment">“{state.question}”</blockquote>}
                 <p id="shuffle-instruction" className="mx-auto mb-6 max-w-md text-base leading-7 text-muted">
                   {t("Repeat your question a few times before stopping the shuffle.", "停止洗牌前，请在心中重复你的问题几次。")}
@@ -622,7 +624,7 @@ export function TarotExperience() {
                   deck={state.deck}
                   selected={state.selected}
                   active={stage === "choose"}
-                  reduced={!hasMotion}
+                  reduced={!cardMotion}
                   onDealComplete={finishIntro}
                   onPick={pick}
                 />
@@ -687,7 +689,7 @@ export function TarotExperience() {
                         image={card.image}
                         reversed={draw.reversed}
                         revealed={revealed}
-                        reduced={!hasMotion}
+                        reduced={!cardMotion}
                         skipVersion={skipVersion}
                       />
                     </button>

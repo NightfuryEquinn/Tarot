@@ -39,9 +39,6 @@
   :root {
     color-scheme: only dark;
   }
-  canvas {
-    color-scheme: only light;
-  }
   body {
     @apply m-0 bg-ink font-sans text-base text-parchment antialiased;
   }
